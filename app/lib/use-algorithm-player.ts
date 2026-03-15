@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { AlgorithmStep } from "@/app/lib/types";
 
 const DEFAULT_SPEED = 1;
-const STEP_DURATION_MS = 800;
+export const STEP_DURATION_MS = 800;
 
 export interface UseAlgorithmPlayerOptions<TData> {
   createGenerator: () => Generator<AlgorithmStep<TData>, void, unknown>;

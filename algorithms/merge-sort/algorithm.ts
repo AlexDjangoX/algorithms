@@ -1,9 +1,10 @@
 import type { AlgorithmStep } from '@/app/lib/types';
 import type { ArrayWithHighlightsData } from '@/components/visualization/BarArrayViz';
+import { DEFAULT_INPUT } from '@/app/lib/default-input';
 
 export type MergeSortData = ArrayWithHighlightsData;
 
-export const DEFAULT_INPUT = [4, 12, 7, 15, 2, 9, 5, 11, 3, 14, 8, 1, 13, 6, 10];
+export { DEFAULT_INPUT };
 
 function createStep(
   id: string,

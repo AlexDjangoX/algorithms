@@ -1,9 +1,10 @@
 import type { AlgorithmStep } from '@/app/lib/types';
 import type { ArrayWithHighlightsData } from '@/components/visualization/BarArrayViz';
+import { DEFAULT_INPUT } from '@/app/lib/default-input';
 
 export type BubbleSortData = ArrayWithHighlightsData;
 
-export const DEFAULT_INPUT = [4, 12, 7, 15, 2, 9, 5, 11, 3, 14, 8, 1, 13, 6, 10];
+export { DEFAULT_INPUT };
 
 function createStep(
   id: string,
@@ -47,13 +48,15 @@ export function* bubbleSortGenerator(
       );
 
       if (arr[j]! > arr[j + 1]!) {
+        const before0 = arr[j]!;
+        const before1 = arr[j + 1]!;
         [arr[j], arr[j + 1]] = [arr[j + 1]!, arr[j]!];
         yield createStep(
           'swap',
           { array: [...arr], highlightIndices: [j, j + 1] },
-          `Swapped ${arr[j + 1]} and ${arr[j]} — now arr[${j}]=${arr[j]}, arr[${j + 1}]=${arr[j + 1]}`,
+          `Swapped ${before0} ↔ ${before1} — arr[${j}]=${arr[j]}, arr[${j + 1}]=${arr[j + 1]}`,
           { start: 9, end: 11 },
-          { variables: { i, j } },
+          { variables: { i, j, 'swapped[j]': before0, 'swapped[j+1]': before1 } },
         );
       }
     }

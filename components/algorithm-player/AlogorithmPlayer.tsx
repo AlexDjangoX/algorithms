@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useAlgorithmPlayer } from '@/app/lib/use-algorithm-player';
+import { useEffect, useRef, useState } from 'react';
+import { useAlgorithmPlayer, STEP_DURATION_MS } from '@/app/lib/use-algorithm-player';
 import {
   playStep,
   resumeAudioContext,
@@ -63,6 +63,15 @@ export function AlgorithmPlayer<TData = LibrarySortData>({
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [soundPreset, setSoundPreset] = useState<SoundPreset>('synth');
 
+  // Keep refs in sync so the sound effect always reads the latest values without
+  // being listed as deps (which would re-trigger sound on every preset/toggle change).
+  const soundEnabledRef = useRef(soundEnabled);
+  const soundPresetRef = useRef(soundPreset);
+  const speedRef = useRef(speed);
+  useEffect(() => { soundEnabledRef.current = soundEnabled; }, [soundEnabled]);
+  useEffect(() => { soundPresetRef.current = soundPreset; }, [soundPreset]);
+  useEffect(() => { speedRef.current = speed; }, [speed]);
+
   useEffect(() => {
     const stored = getStoredSoundPreset();
     if (stored !== 'synth') {
@@ -75,11 +84,13 @@ export function AlgorithmPlayer<TData = LibrarySortData>({
     setStoredSoundPreset(preset);
   };
 
+  // Only fire when the step actually advances — not when preset or enabled changes.
+  // stepIntervalSec scales note duration proportionally so pitch fills the step.
   useEffect(() => {
-    if (soundEnabled && currentStep) {
-      playStep(currentStep, soundPreset);
-    }
-  }, [currentStep, soundEnabled, soundPreset]);
+    if (!soundEnabledRef.current || !currentStep) return;
+    const stepIntervalSec = STEP_DURATION_MS / (speedRef.current * 1000);
+    playStep(currentStep, soundPresetRef.current, stepIntervalSec);
+  }, [currentStep]); // intentionally excludes soundEnabled/soundPreset/speed — using refs
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {

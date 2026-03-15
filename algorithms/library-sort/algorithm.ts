@@ -1,4 +1,5 @@
 import type { AlgorithmStep } from '@/app/lib/types';
+import { DEFAULT_INPUT } from '@/app/lib/default-input';
 
 export interface LibrarySortData {
   array: (number | null)[];
@@ -7,9 +8,7 @@ export interface LibrarySortData {
   insertingValue?: number;
 }
 
-export const DEFAULT_INPUT = [
-  4, 12, 7, 15, 2, 9, 5, 11, 3, 14, 8, 1, 13, 6, 10,
-];
+export { DEFAULT_INPUT };
 
 function binarySearchPos(
   val: number,
@@ -173,11 +172,13 @@ export function* librarySortGenerator(
       if (w < S.length) S[w] = S[j];
       if (w > 0) S[w - 1] = null;
       w -= step;
+      const stepNum = prevLen - 1 - j + 1;
       yield createStep(
         'rebalance',
         { array: S.map((x) => x), input: [...input] },
-        'Rebalancing...',
+        `Spreading elements to restore gaps (${stepNum}/${prevLen})`,
         { start: 36, end: 40 },
+        { variables: { prevLen, newLen, j, stepNum } },
       );
     }
 

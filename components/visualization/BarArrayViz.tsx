@@ -57,7 +57,7 @@ export function BarArrayViz({ data }: { data: ArrayWithHighlightsData }) {
           const isHighlight = highlightSet.has(idx);
           return (
             <div
-              key={`${idx}-${val}`}
+              key={idx}
               style={{
                 position: "absolute",
                 bottom: 0,

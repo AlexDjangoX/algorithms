@@ -67,16 +67,20 @@ function getTone(): ToneModule | null {
 }
 
 // ── Pentatonic note mapping ───────────────────────────────────────────────────
-// Values 0–15 map across C D E G A (pentatonic) starting at octave 4.
-// The same value always maps to the same note regardless of array context.
+// Values 1–N map across C D E G A (pentatonic) from octave 4 up to 8.
+// maxVal is derived from the actual data so the tallest bar always maps to the
+// highest note and pitch is proportional to bar height across the full scale.
 
 const PENTATONIC_NOTES = ['C', 'D', 'E', 'G', 'A'] as const;
 const BASE_OCTAVE = 4;
+const PITCH_SLOTS = 25; // 5 octaves × 5 notes (octaves 4–8)
 
-function valueToNote(value: number): string {
-  const v = Math.max(0, Math.min(15, Math.round(value)));
-  const noteIndex = v % PENTATONIC_NOTES.length;
-  const octave = BASE_OCTAVE + Math.floor(v / PENTATONIC_NOTES.length);
+function valueToNote(value: number, maxVal: number): string {
+  const ceiling = Math.max(2, maxVal);
+  const v = Math.max(1, Math.min(ceiling, Math.round(value)));
+  const pitchIndex = Math.round(((v - 1) * (PITCH_SLOTS - 1)) / (ceiling - 1));
+  const noteIndex = pitchIndex % PENTATONIC_NOTES.length;
+  const octave = BASE_OCTAVE + Math.floor(pitchIndex / PENTATONIC_NOTES.length);
   return `${PENTATONIC_NOTES[noteIndex]}${octave}`;
 }
 
@@ -276,7 +280,7 @@ function playNote(
   try {
     inst.triggerAttackRelease(note, durationSec, T.now() + delaySec, velocity);
   } catch {
-    // Transient audio scheduling error (e.g. context not yet running)
+    // Transient audio scheduling error
   }
 }
 
@@ -286,16 +290,18 @@ function playArpeggio(
   gapBetween: number,
   preset: SoundPreset,
   velocity = 0.6,
+  maxVal?: number,
 ): void {
   const T = getTone();
   if (!T || values.length === 0) return;
   const inst = getInstrument(preset);
   if (!inst) return;
   const now = T.now();
+  const m = maxVal ?? Math.max(...values);
   values.forEach((val, i) => {
     const delay = i * (noteDuration + gapBetween);
     try {
-      inst.triggerAttackRelease(valueToNote(val), noteDuration, now + delay, velocity);
+      inst.triggerAttackRelease(valueToNote(val, m), noteDuration, now + delay, velocity);
     } catch {
       // Transient audio scheduling error
     }
@@ -303,10 +309,46 @@ function playArpeggio(
 }
 
 // ── Step → sound mapping ──────────────────────────────────────────────────────
+// Data shape: bubble/merge use { array: number[], highlightIndices?: number[] }.
+// Library sort uses { array: (number|null)[], input: number[], insertingValue?: number }
+// and puts indices on step.highlights instead of data.highlightIndices.
 
+type StepData = {
+  array?: (number | null)[];
+  input?: number[];
+  highlightIndices?: number[];
+  insertingValue?: number;
+};
+
+function getValuesForArpeggio(data: StepData | undefined, stepId: string): number[] {
+  if (!data) return [];
+  // Library sort init: use input (unsorted)
+  if (stepId === 'init' && data.input?.length) return data.input;
+  // Library sort done: sorted order = non-null elements of array in order
+  if (stepId === 'done' && data.array?.length) {
+    const compact = data.array.filter((x): x is number => typeof x === 'number');
+    if (compact.length > 0) return compact;
+  }
+  // Bubble/merge: array is the current state (number[])
+  if (data.array?.length) {
+    const nums = data.array.filter((x): x is number => typeof x === 'number');
+    if (nums.length > 0) return nums;
+  }
+  return [];
+}
+
+/**
+ * Play audio for a single algorithm step.
+ *
+ * @param stepIntervalSec - How long each visual step lasts (seconds). Notes are
+ *   scaled to ~60 % of this so there is a natural gap before the next step
+ *   without long silences. Init/done arpeggios ignore this and use their own
+ *   fixed durations since they intentionally overlap several visual steps.
+ */
 export function playStep(
   step: AlgorithmStep<unknown> | null,
   preset: SoundPreset = 'synth',
+  stepIntervalSec = 0.8,
 ): void {
   if (!step) return;
   const T = getTone();
@@ -317,44 +359,65 @@ export function playStep(
     return;
   }
 
-  const data = step.data as
-    | { array?: number[]; highlightIndices?: number[] }
-    | undefined;
-  const arr = data?.array ?? [];
-  const indices = data?.highlightIndices ?? [];
+  const data = step.data as StepData | undefined;
+  const arr = (data?.array ?? []) as (number | null)[];
+  const indices = data?.highlightIndices ?? step.highlights ?? [];
   const vars = step.variables ?? {};
-  const dur = 0.12;
+
+  // Derive the pitch ceiling from the actual data so pitch is proportional to
+  // bar height across the full pentatonic scale.
+  const arrNums = arr.filter((x): x is number => typeof x === 'number');
+  const dataMax = arrNums.length > 1 ? Math.max(...arrNums) : 30;
+
+  // Note duration scales with the visual step interval (~60 %) so notes fill
+  // the step naturally instead of leaving a dead-air gap.
+  const dur = Math.max(0.06, stepIntervalSec * 0.6);
+
+  const note = (v: number) => valueToNote(v, dataMax);
 
   // init — arpeggio of the unsorted input
-  if (step.id === 'init') {
-    if (arr.length > 0) playArpeggio(arr, 0.065, 0.018, preset);
-    else playNote(valueToNote(1), dur, preset, 0, 0.55);
+  if (step.id === 'init' || step.id === 'init_input') {
+    const values = getValuesForArpeggio(data, 'init');
+    const m = values.length > 0 ? Math.max(...values) : dataMax;
+    if (values.length > 0) playArpeggio(values, 0.065, 0.018, preset, 0.6, m);
+    else playNote(valueToNote(1, dataMax), dur, preset, 0, 0.55);
     return;
   }
 
-  // done — arpeggio of the sorted result
+  // done — ascending arpeggio of sorted result
   if (step.id === 'done') {
-    if (arr.length > 0) playArpeggio(arr, 0.08, 0.022, preset, 0.7);
+    const values = getValuesForArpeggio(data, 'done');
+    const m = values.length > 0 ? Math.max(...values) : dataMax;
+    if (values.length > 0) playArpeggio(values, 0.08, 0.022, preset, 0.7, m);
     else {
-      playNote(valueToNote(8), dur * 2, preset, 0, 0.6);
-      playNote(valueToNote(12), dur * 1.5, preset, 0.1, 0.5);
+      playNote(valueToNote(8, dataMax), dur * 2, preset, 0, 0.6);
+      playNote(valueToNote(dataMax, dataMax), dur * 1.5, preset, 0.1, 0.5);
     }
     return;
   }
 
-  // swap — checked before the generic two-index path so it gets a distinct,
-  // accented sound (higher velocity, tighter gap)
+  // Library sort: single value being inserted
+  const insertingVal = data?.insertingValue ?? vars['val'];
+  if (
+    typeof insertingVal === 'number' &&
+    ['pick_value', 'binary_search', 'insert'].includes(step.id)
+  ) {
+    playNote(note(insertingVal), dur, preset, 0, 0.65);
+    return;
+  }
+
+  // swap — play the two values at their new positions (post-swap array)
   if (step.id === 'swap' && indices.length >= 2 && arr.length > 0) {
     const a = arr[indices[0]!];
     const b = arr[indices[1]!];
     if (typeof a === 'number' && typeof b === 'number') {
-      playNote(valueToNote(a), dur * 0.85, preset, 0, 0.82);
-      playNote(valueToNote(b), dur * 0.85, preset, 0.04, 0.78);
+      playNote(note(a), dur * 0.85, preset, 0, 0.82);
+      playNote(note(b), dur * 0.85, preset, dur * 0.15, 0.78);
       return;
     }
   }
 
-  // compare (merge sort) — driven by left/right variables
+  // compare (merge sort) — left/right values stored in variables
   const leftVal = vars['left'];
   const rightVal = vars['right'];
   if (
@@ -362,29 +425,32 @@ export function playStep(
     typeof leftVal === 'number' &&
     typeof rightVal === 'number'
   ) {
-    playNote(valueToNote(leftVal), dur, preset, 0, 0.6);
-    playNote(valueToNote(rightVal), dur * 0.7, preset, 0.05, 0.5);
+    playNote(note(leftVal), dur, preset, 0, 0.6);
+    playNote(note(rightVal), dur * 0.7, preset, dur * 0.08, 0.5);
     return;
   }
 
-  // compare (bubble / insertion sort) — two highlighted indices
+  // compare (bubble sort) or shift (library sort) — two highlighted indices
   if (indices.length >= 2 && arr.length > 0) {
     const a = arr[indices[0]!];
     const b = arr[indices[1]!];
     if (typeof a === 'number' && typeof b === 'number') {
-      playNote(valueToNote(a), dur, preset, 0, 0.6);
-      playNote(valueToNote(b), dur * 0.7, preset, 0.05, 0.5);
+      playNote(note(a), dur, preset, 0, 0.6);
+      playNote(note(b), dur * 0.7, preset, dur * 0.08, 0.5);
       return;
     }
   }
 
-  // merge place — value just written at index k-1
+  // merge_place — value just written at index k-1
   const k = vars['k'];
   if (step.id === 'merge_place' && typeof k === 'number' && arr.length > 0) {
     const idx = k - 1;
-    if (idx >= 0 && typeof arr[idx] === 'number') {
-      playNote(valueToNote(arr[idx] as number), dur, preset, 0, 0.65);
-      return;
+    if (idx >= 0) {
+      const v = arr[idx];
+      if (typeof v === 'number') {
+        playNote(note(v), dur, preset, 0, 0.65);
+        return;
+      }
     }
   }
 
@@ -392,18 +458,26 @@ export function playStep(
   if (indices.length >= 1 && arr.length > 0) {
     const v = arr[indices[0]!];
     if (typeof v === 'number') {
-      playNote(valueToNote(v), dur, preset, 0, 0.58);
+      playNote(note(v), dur, preset, 0, 0.58);
       return;
     }
   }
 
-  if (arr.length > 0 && typeof arr[0] === 'number') {
-    playNote(valueToNote(arr[0]), dur, preset, 0, 0.45);
-    return;
+  if (arr.length > 0) {
+    const first = arr[0];
+    if (typeof first === 'number') {
+      playNote(note(first), dur, preset, 0, 0.45);
+      return;
+    }
   }
 
-  // structural steps with no single value to represent
-  if (['pass_start', 'merge_done', 'outer'].includes(step.id)) return;
+  // structural steps with no audible value
+  if (
+    ['pass_start', 'merge_done', 'outer', 'round_start', 'rebalance_start', 'rebalance'].includes(
+      step.id,
+    )
+  )
+    return;
 
-  playNote(valueToNote(5), dur, preset, 0, 0.35);
+  playNote(valueToNote(Math.ceil(dataMax / 6), dataMax), dur, preset, 0, 0.35);
 }
