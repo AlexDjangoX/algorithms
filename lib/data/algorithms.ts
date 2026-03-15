@@ -35,7 +35,7 @@ export const ALGORITHMS: Algorithm[] = [
     description:
       'Divides the array in half recursively, then merges sorted halves.',
     complexity: { time: 'O(n · log n)', space: 'O(n)' },
-    status: 'coming-soon',
+    status: 'live',
   },
   {
     slug: 'quick-sort',

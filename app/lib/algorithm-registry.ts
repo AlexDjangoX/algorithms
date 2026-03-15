@@ -16,6 +16,8 @@ import { LIBRARY_SORT_CODE } from '@/algorithms/library-sort/code';
 import { BarViz } from '@/components/visualization/BarViz';
 import { bubbleSortGenerator } from '@/algorithms/bubble-sort/algorithm';
 import { BUBBLE_SORT_CODE } from '@/algorithms/bubble-sort/code';
+import { mergeSortGenerator } from '@/algorithms/merge-sort/algorithm';
+import { MERGE_SORT_CODE } from '@/algorithms/merge-sort/code';
 import { BarArrayViz } from '@/components/visualization/BarArrayViz';
 
 export interface AlgorithmConfig extends Algorithm {
@@ -28,6 +30,7 @@ export interface AlgorithmConfig extends Algorithm {
 
 const createLibrarySortGenerator = () => librarySortGenerator();
 const createBubbleSortGenerator = () => bubbleSortGenerator();
+const createMergeSortGenerator = () => mergeSortGenerator();
 
 const IMPLEMENTATIONS: Record<
   string,
@@ -44,6 +47,13 @@ const IMPLEMENTATIONS: Record<
     code: BUBBLE_SORT_CODE,
     filename: 'bubbleSort.ts',
     createGenerator: createBubbleSortGenerator,
+    Visualization: BarArrayViz as ComponentType<{ data: unknown }>,
+    defaultVizData: { array: [] },
+  },
+  'merge-sort': {
+    code: MERGE_SORT_CODE,
+    filename: 'mergeSort.ts',
+    createGenerator: createMergeSortGenerator,
     Visualization: BarArrayViz as ComponentType<{ data: unknown }>,
     defaultVizData: { array: [] },
   },

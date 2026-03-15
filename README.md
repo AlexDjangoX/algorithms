@@ -74,6 +74,9 @@ Component files use **PascalCase** (e.g. `BarViz.tsx`, `AlgorithmPageContent.tsx
 │   ├── bubble-sort/
 │   │   ├── algorithm.ts
 │   │   └── code.ts
+│   ├── merge-sort/
+│   │   ├── algorithm.ts
+│   │   └── code.ts
 │   └── README.md                     # "Adding a new algorithm" guide
 ├── app/
 │   ├── layout.tsx                   # Root layout (theme, fonts)
@@ -194,7 +197,7 @@ npm start
 |---|---|---|---|---|
 | Library Sort | Sorting | O(n · log n) | O(n) | ✅ Live |
 | Bubble Sort | Sorting | O(n²) | O(1) | ✅ Live |
-| Merge Sort | Sorting | O(n · log n) | O(n) | 🔜 Planned |
+| Merge Sort | Sorting | O(n · log n) | O(n) | ✅ Live |
 | Quick Sort | Sorting | O(n · log n) avg | O(log n) | 🔜 Planned |
 | Binary Search | Searching | O(log n) | O(1) | 🔜 Planned |
 | A\* Pathfinding | Graph | O(E · log V) | O(V) | 🔜 Planned |
