@@ -82,7 +82,7 @@ export function* librarySortGenerator(
       'round_start',
       { array: S.map((x) => x), input: [...input] },
       `Round ${round}: inserting up to ${goal} element(s)`,
-      { start: 10, end: 12 },
+      { start: 12, end: 13 },
       { variables: { round, goal, pos } },
     );
 
@@ -112,7 +112,7 @@ export function* librarySortGenerator(
           insertingValue: val,
         },
         `Binary search: insert ${val} at position ${insPos}`,
-        { start: 17, end: 17 },
+        { start: 18, end: 18 },
         { variables: { val, insPos, pos }, highlights: [insPos] },
       );
 
@@ -130,7 +130,7 @@ export function* librarySortGenerator(
               insertingValue: val,
             },
             `Shift right to make room for ${val}`,
-            { start: 19, end: 24 },
+            { start: 20, end: 25 },
             { variables: { val, insPos, j }, highlights: [j, j - 1] },
           );
         }
@@ -148,7 +148,7 @@ export function* librarySortGenerator(
           insertingValue: val,
         },
         `Inserted ${val} at position ${insPos}`,
-        { start: 26, end: 28 },
+        { start: 28, end: 29 },
         { variables: { val, insPos, pos }, highlights: [insPos] },
       );
     }
@@ -193,6 +193,6 @@ export function* librarySortGenerator(
     'done',
     { array: S.map((x) => x), input: [...input] },
     'Sort complete! ✓',
-    { start: 43, end: 43 },
+    { start: 48, end: 48 },
   );
 }
