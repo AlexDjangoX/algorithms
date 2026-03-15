@@ -4,7 +4,7 @@
 
 We want the algorithm visualisation to be **audible as well as visual**. The goals are:
 
-1. **Sonification** — Each step of the algorithm should produce sound so users can *hear* what’s happening, not only see it. This supports accessibility and different learning styles.
+1. **Sonification** — Each step of the algorithm should produce sound so users can _hear_ what’s happening, not only see it. This supports accessibility and different learning styles.
 2. **Meaningful mapping** — The sound should reflect the **actual data and operations**: which values are being compared, swapped, or written, so that listening conveys the same information as the viz.
 3. **Pleasant and configurable** — The default tone should be inoffensive; users should be able to choose a **timbre** (synth, organ, piano, guitar) and have that choice **persist** across sessions.
 4. **No external assets** — Everything is driven by the **Web Audio API** (oscillators, gain, envelopes) so we don’t depend on sample files or extra dependencies.
@@ -28,15 +28,15 @@ We are **not** trying to:
 
 Sound is driven by **step type and step data**, not generic beeps:
 
-| Step type | What you hear |
-|-----------|----------------|
-| **Init** | Arpeggio of the **input array** in order (the unsorted sequence). |
-| **Done** | Arpeggio of the **sorted array** (the result). |
-| **Compare (e.g. bubble)** | The **two values** at the compared indices (two notes, slightly staggered). |
-| **Compare (merge)** | The **two values** from the left and right runs (`variables.left`, `variables.right`). |
-| **Swap** | The **two values** that were just swapped (distinct timbre: triangle, quick succession). |
-| **Merge place** | The **value just written** at index `k - 1`. |
-| **pass_start / merge_done / outer** | No sound (no single “value” to represent). |
+| Step type                           | What you hear                                                                            |
+| ----------------------------------- | ---------------------------------------------------------------------------------------- |
+| **Init**                            | Arpeggio of the **input array** in order (the unsorted sequence).                        |
+| **Done**                            | Arpeggio of the **sorted array** (the result).                                           |
+| **Compare (e.g. bubble)**           | The **two values** at the compared indices (two notes, slightly staggered).              |
+| **Compare (merge)**                 | The **two values** from the left and right runs (`variables.left`, `variables.right`).   |
+| **Swap**                            | The **two values** that were just swapped (distinct timbre: triangle, quick succession). |
+| **Merge place**                     | The **value just written** at index `k - 1`.                                             |
+| **pass_start / merge_done / outer** | No sound (no single “value” to represent).                                               |
 
 So: init = “here’s the input,” done = “here’s the output,” compare = “these two are being compared,” swap = “these two just swapped.”
 

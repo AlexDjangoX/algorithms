@@ -3,6 +3,13 @@
 import type { ChangeEvent } from 'react';
 import type { SoundPreset } from '@/app/lib/algorithm-sound';
 import { SOUND_PRESET_LABELS, SOUND_PRESETS } from '@/app/lib/algorithm-sound';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 interface ControlsProps {
   isPlaying: boolean;
@@ -10,10 +17,6 @@ interface ControlsProps {
   stepIndex: number;
   totalSteps: number;
   speed: number;
-  soundEnabled?: boolean;
-  soundPreset?: SoundPreset;
-  onSoundChange?: (enabled: boolean) => void;
-  onSoundPresetChange?: (preset: SoundPreset) => void;
   soundEnabled?: boolean;
   soundPreset?: SoundPreset;
   onSoundChange?: (enabled: boolean) => void;
@@ -32,13 +35,13 @@ const SPEED_OPTIONS = [0.5, 1, 1.5, 2, 3];
 export function Controls({
   isPlaying,
   isComplete,
-  soundPreset = 'synth',
-  onSoundChange,
-  onSoundPresetChange,
+  stepIndex,
   totalSteps,
   speed,
   soundEnabled = true,
+  soundPreset = 'synth',
   onSoundChange,
+  onSoundPresetChange,
   onPlay,
   onPause,
   onStepForward,
@@ -135,50 +138,80 @@ export function Controls({
 
         {/* Sound */}
         {onSoundChange && (
-          <button
-            type="button"
-            onClick={() => onSoundChange(!soundEnabled)}
-            className={`
-              flex items-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-medium
-              transition-all duration-150 hover:scale-105 active:scale-95
-              ${
-                soundEnabled
-                  ? 'border-primary bg-primary/15 text-primary'
-                  : 'border-border bg-secondary text-muted-foreground hover:bg-secondary/80'
-              }
-            `}
-            title={soundEnabled ? 'Sound on' : 'Sound off'}
-          >
-            {soundEnabled ? (
-              <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.617.776L4.92 12H2a1 1 0 01-1-1V9a1 1 0 011-1h2.92l3.463-3.924a1 1 0 011-.zM14.657 2.929a1 1 0 011.414 0A9.972 9.972 0 0119 10a9.972 9.972 0 01-2.929 7.071 1 1 0 01-1.414-1.414A7.971 7.971 0 0017 10c0-2.21-.894-4.208-2.343-5.657a1 1 0 010-1.414z" />
-                <path d="M11.89 6.087a1 1 0 011.415 0 5 5 0 010 7.07 1 1 0 01-1.415-1.415 3 3 0 000-4.24 1 1 0 010-1.415z" />
-              </svg>
-            ) : (
-              <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.617.776L4.92 12H2a1 1 0 01-1-1V9a1 1 0 011-1h2.92l3.463-3.924a1 1 0 011-.zM16.707 4.293a1 1 0 010 1.414L15.414 7l1.293 1.293a1 1 0 01-1.414 1.414L14 8.414l-1.293 1.293a1 1 0 01-1.414-1.414L12.586 7l-1.293-1.293a1 1 0 011.414-1.414L14 5.586l1.293-1.293a1 1 0 011.414 0z" />
-              </svg>
+          <div className="flex items-center gap-1.5">
+            <button
+              type="button"
+              onClick={() => onSoundChange(!soundEnabled)}
+              className={`
+                flex items-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-medium
+                transition-all duration-150 hover:scale-105 active:scale-95
+                ${
+                  soundEnabled
+                    ? 'border-primary bg-primary/15 text-primary'
+                    : 'border-border bg-secondary text-muted-foreground hover:bg-secondary/80'
+                }
+              `}
+              title={soundEnabled ? 'Sound on' : 'Sound off'}
+            >
+              {soundEnabled ? (
+                <svg
+                  className="h-4 w-4"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.617.776L4.92 12H2a1 1 0 01-1-1V9a1 1 0 011-1h2.92l3.463-3.924a1 1 0 011-.zM14.657 2.929a1 1 0 011.414 0A9.972 9.972 0 0119 10a9.972 9.972 0 01-2.929 7.071 1 1 0 01-1.414-1.414A7.971 7.971 0 0017 10c0-2.21-.894-4.208-2.343-5.657a1 1 0 010-1.414z" />
+                  <path d="M11.89 6.087a1 1 0 011.415 0 5 5 0 010 7.07 1 1 0 01-1.415-1.415 3 3 0 000-4.24 1 1 0 010-1.415z" />
+                </svg>
+              ) : (
+                <svg
+                  className="h-4 w-4"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.617.776L4.92 12H2a1 1 0 01-1-1V9a1 1 0 011-1h2.92l3.463-3.924a1 1 0 011-.zM16.707 4.293a1 1 0 010 1.414L15.414 7l1.293 1.293a1 1 0 01-1.414 1.414L14 8.414l-1.293 1.293a1 1 0 01-1.414-1.414L12.586 7l-1.293-1.293a1 1 0 011.414-1.414L14 5.586l1.293-1.293a1 1 0 011.414 0z" />
+                </svg>
+              )}
+              <span>{soundEnabled ? 'Sound' : 'Mute'}</span>
+            </button>
+            {/* Synthesizer preset dropdown — only when sound on */}
+            {soundEnabled && onSoundPresetChange && (
+              <DropdownMenu>
+                <DropdownMenuTrigger
+                  className="flex cursor-pointer items-center gap-1.5 rounded-lg border border-border bg-secondary px-3 py-2 text-xs font-medium text-foreground transition-all hover:bg-secondary/80 focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  title="Synthesizer sound"
+                >
+                  {SOUND_PRESET_LABELS[soundPreset]}
+                  <svg
+                    className="h-3.5 w-3.5 opacity-70"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 9l-7 7-7-7"
+                    />
+                  </svg>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start">
+                  <DropdownMenuRadioGroup
+                    value={soundPreset}
+                    onValueChange={(value) =>
+                      onSoundPresetChange(value as SoundPreset)
+                    }
+                  >
+                    {SOUND_PRESETS.map((p) => (
+                      <DropdownMenuRadioItem key={p} value={p}>
+                        {SOUND_PRESET_LABELS[p]}
+                      </DropdownMenuRadioItem>
+                    ))}
+                  </DropdownMenuRadioGroup>
+                </DropdownMenuContent>
+              </DropdownMenu>
             )}
-        {/* Sound preset (tone) — only when sound on */}
-        {soundEnabled && onSoundPresetChange && (
-          <select
-            value={soundPreset}
-            onChange={(e: ChangeEvent<HTMLSelectElement>) =>
-              onSoundPresetChange(e.target.value as SoundPreset)
-            }
-            className="cursor-pointer rounded-lg border border-border bg-secondary px-3 py-2 text-xs font-medium text-foreground transition-all hover:bg-secondary/80 focus:outline-none focus:ring-2 focus:ring-primary/50"
-            title="Sound tone"
-          >
-            {SOUND_PRESETS.map((p) => (
-              <option key={p} value={p}>
-                {SOUND_PRESET_LABELS[p]}
-              </option>
-            ))}
-          </select>
-        )}
-
-            <span>{soundEnabled ? 'Sound' : 'Mute'}</span>
-          </button>
+          </div>
         )}
 
         {/* Speed */}
