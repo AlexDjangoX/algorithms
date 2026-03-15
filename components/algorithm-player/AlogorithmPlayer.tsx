@@ -1,7 +1,14 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useAlgorithmPlayer } from '@/app/lib/use-algorithm-player';
+import {
+  playStep,
+  resumeAudioContext,
+  getStoredSoundPreset,
+  setStoredSoundPreset,
+  type SoundPreset,
+} from '@/app/lib/algorithm-sound';
 import { BarViz } from '@/components/visualization/BarViz';
 import { CodeViewer } from '@/components/code-viewer/CodeViewer';
 import { Controls } from '@/components/controls/Controls';
@@ -53,6 +60,27 @@ export function AlgorithmPlayer<TData = LibrarySortData>({
     onComplete: () => {},
   });
 
+  const [soundEnabled, setSoundEnabled] = useState(true);
+  const [soundPreset, setSoundPreset] = useState<SoundPreset>('synth');
+
+  useEffect(() => {
+    const stored = getStoredSoundPreset();
+    if (stored !== 'synth') {
+      queueMicrotask(() => setSoundPreset(stored));
+    }
+  }, []);
+
+  const handleSoundPresetChange = (preset: SoundPreset) => {
+    setSoundPreset(preset);
+    setStoredSoundPreset(preset);
+  };
+
+  useEffect(() => {
+    if (soundEnabled && currentStep) {
+      playStep(currentStep, soundPreset);
+    }
+  }, [currentStep, soundEnabled, soundPreset]);
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (
@@ -63,15 +91,18 @@ export function AlgorithmPlayer<TData = LibrarySortData>({
       switch (e.key) {
         case ' ':
           e.preventDefault();
+          resumeAudioContext();
           if (isPlaying) pause();
           else play();
           break;
         case 'ArrowRight':
           e.preventDefault();
+          resumeAudioContext();
           stepForward();
           break;
         case 'ArrowLeft':
           e.preventDefault();
+          resumeAudioContext();
           stepBack();
           break;
       }
@@ -127,13 +158,29 @@ export function AlgorithmPlayer<TData = LibrarySortData>({
       stepIndex={stepIndex}
       totalSteps={totalSteps}
       speed={speed}
-      onPlay={play}
+      soundEnabled={soundEnabled}
+      soundPreset={soundPreset}
+      onSoundChange={setSoundEnabled}
+      onSoundPresetChange={handleSoundPresetChange}
+      onPlay={() => {
+        resumeAudioContext();
+        play();
+      }}
       onPause={pause}
-      onStepForward={stepForward}
-      onStepBack={stepBack}
+      onStepForward={() => {
+        resumeAudioContext();
+        stepForward();
+      }}
+      onStepBack={() => {
+        resumeAudioContext();
+        stepBack();
+      }}
       onReset={reset}
       onSpeedChange={setSpeed}
-      onStepSelect={goToStep}
+      onStepSelect={(index: number) => {
+        resumeAudioContext();
+        goToStep(index);
+      }}
     />
   );
 

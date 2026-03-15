@@ -1,11 +1,23 @@
 'use client';
 
+import type { ChangeEvent } from 'react';
+import type { SoundPreset } from '@/app/lib/algorithm-sound';
+import { SOUND_PRESET_LABELS, SOUND_PRESETS } from '@/app/lib/algorithm-sound';
+
 interface ControlsProps {
   isPlaying: boolean;
   isComplete: boolean;
   stepIndex: number;
   totalSteps: number;
   speed: number;
+  soundEnabled?: boolean;
+  soundPreset?: SoundPreset;
+  onSoundChange?: (enabled: boolean) => void;
+  onSoundPresetChange?: (preset: SoundPreset) => void;
+  soundEnabled?: boolean;
+  soundPreset?: SoundPreset;
+  onSoundChange?: (enabled: boolean) => void;
+  onSoundPresetChange?: (preset: SoundPreset) => void;
   onPlay: () => void;
   onPause: () => void;
   onStepForward: () => void;
@@ -20,9 +32,13 @@ const SPEED_OPTIONS = [0.5, 1, 1.5, 2, 3];
 export function Controls({
   isPlaying,
   isComplete,
-  stepIndex,
+  soundPreset = 'synth',
+  onSoundChange,
+  onSoundPresetChange,
   totalSteps,
   speed,
+  soundEnabled = true,
+  onSoundChange,
   onPlay,
   onPause,
   onStepForward,
@@ -53,7 +69,7 @@ export function Controls({
           </svg>
         </button>
 
-        {/* Play / Pause - compact to match step buttons */}
+        {/* Play / Pause */}
         <button
           onClick={isPlaying ? onPause : onPlay}
           disabled={isComplete && stepIndex >= totalSteps - 1 && totalSteps > 0}
@@ -117,6 +133,54 @@ export function Controls({
           Reset
         </button>
 
+        {/* Sound */}
+        {onSoundChange && (
+          <button
+            type="button"
+            onClick={() => onSoundChange(!soundEnabled)}
+            className={`
+              flex items-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-medium
+              transition-all duration-150 hover:scale-105 active:scale-95
+              ${
+                soundEnabled
+                  ? 'border-primary bg-primary/15 text-primary'
+                  : 'border-border bg-secondary text-muted-foreground hover:bg-secondary/80'
+              }
+            `}
+            title={soundEnabled ? 'Sound on' : 'Sound off'}
+          >
+            {soundEnabled ? (
+              <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.617.776L4.92 12H2a1 1 0 01-1-1V9a1 1 0 011-1h2.92l3.463-3.924a1 1 0 011-.zM14.657 2.929a1 1 0 011.414 0A9.972 9.972 0 0119 10a9.972 9.972 0 01-2.929 7.071 1 1 0 01-1.414-1.414A7.971 7.971 0 0017 10c0-2.21-.894-4.208-2.343-5.657a1 1 0 010-1.414z" />
+                <path d="M11.89 6.087a1 1 0 011.415 0 5 5 0 010 7.07 1 1 0 01-1.415-1.415 3 3 0 000-4.24 1 1 0 010-1.415z" />
+              </svg>
+            ) : (
+              <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.617.776L4.92 12H2a1 1 0 01-1-1V9a1 1 0 011-1h2.92l3.463-3.924a1 1 0 011-.zM16.707 4.293a1 1 0 010 1.414L15.414 7l1.293 1.293a1 1 0 01-1.414 1.414L14 8.414l-1.293 1.293a1 1 0 01-1.414-1.414L12.586 7l-1.293-1.293a1 1 0 011.414-1.414L14 5.586l1.293-1.293a1 1 0 011.414 0z" />
+              </svg>
+            )}
+        {/* Sound preset (tone) — only when sound on */}
+        {soundEnabled && onSoundPresetChange && (
+          <select
+            value={soundPreset}
+            onChange={(e: ChangeEvent<HTMLSelectElement>) =>
+              onSoundPresetChange(e.target.value as SoundPreset)
+            }
+            className="cursor-pointer rounded-lg border border-border bg-secondary px-3 py-2 text-xs font-medium text-foreground transition-all hover:bg-secondary/80 focus:outline-none focus:ring-2 focus:ring-primary/50"
+            title="Sound tone"
+          >
+            {SOUND_PRESETS.map((p) => (
+              <option key={p} value={p}>
+                {SOUND_PRESET_LABELS[p]}
+              </option>
+            ))}
+          </select>
+        )}
+
+            <span>{soundEnabled ? 'Sound' : 'Mute'}</span>
+          </button>
+        )}
+
         {/* Speed */}
         <div className="flex items-center gap-2">
           <span className="text-xs text-muted-foreground">Speed</span>
@@ -151,7 +215,9 @@ export function Controls({
             min={0}
             max={totalSteps - 1}
             value={stepIndex}
-            onChange={(e) => onStepSelect?.(parseInt(e.target.value, 10))}
+            onChange={(e: ChangeEvent<HTMLInputElement>) =>
+              onStepSelect?.(parseInt(e.target.value, 10))
+            }
             className="h-2 flex-1 cursor-pointer appearance-none rounded-full bg-secondary accent-primary border border-border"
           />
           <span className="tabular-nums text-xs text-muted-foreground">
