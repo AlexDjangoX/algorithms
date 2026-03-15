@@ -1,7 +1,10 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { useAlgorithmPlayer, STEP_DURATION_MS } from '@/app/lib/use-algorithm-player';
+import {
+  useAlgorithmPlayer,
+  STEP_DURATION_MS,
+} from '@/app/lib/use-algorithm-player';
 import {
   playStep,
   resumeAudioContext,
@@ -68,9 +71,15 @@ export function AlgorithmPlayer<TData = LibrarySortData>({
   const soundEnabledRef = useRef(soundEnabled);
   const soundPresetRef = useRef(soundPreset);
   const speedRef = useRef(speed);
-  useEffect(() => { soundEnabledRef.current = soundEnabled; }, [soundEnabled]);
-  useEffect(() => { soundPresetRef.current = soundPreset; }, [soundPreset]);
-  useEffect(() => { speedRef.current = speed; }, [speed]);
+  useEffect(() => {
+    soundEnabledRef.current = soundEnabled;
+  }, [soundEnabled]);
+  useEffect(() => {
+    soundPresetRef.current = soundPreset;
+  }, [soundPreset]);
+  useEffect(() => {
+    speedRef.current = speed;
+  }, [speed]);
 
   useEffect(() => {
     const stored = getStoredSoundPreset();
@@ -132,7 +141,7 @@ export function AlgorithmPlayer<TData = LibrarySortData>({
     <BarViz data={vizData as LibrarySortData} />
   );
   const statusBlock = (
-    <div className="flex flex-wrap items-center gap-3 rounded-xl border border-border bg-secondary/80 px-4 py-3">
+    <div className="flex min-h-[8rem] sm:min-h-[6rem] flex-wrap items-center gap-3 rounded-xl border border-border bg-secondary/80 px-4 py-3">
       <p className="flex-1 text-sm text-foreground min-w-0">
         {currentStep?.description ?? 'Click ▶ Play or Step → to start'}
       </p>

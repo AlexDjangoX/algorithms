@@ -30,7 +30,7 @@ interface ControlsProps {
   onStepSelect?: (index: number) => void;
 }
 
-const SPEED_OPTIONS = [0.5, 1, 1.5, 2, 3];
+const SPEED_OPTIONS = [0.5, 1, 1.5, 2, 3, 5, 10];
 
 export function Controls({
   isPlaying,
