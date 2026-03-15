@@ -7,7 +7,7 @@ We want the algorithm visualisation to be **audible as well as visual**. The goa
 1. **Sonification** — Each step of the algorithm should produce sound so users can _hear_ what’s happening, not only see it. This supports accessibility and different learning styles.
 2. **Meaningful mapping** — The sound should reflect the **actual data and operations**: which values are being compared, swapped, or written, so that listening conveys the same information as the viz.
 3. **Pleasant and configurable** — The default tone should be inoffensive; users should be able to choose a **timbre** (synth, organ, piano, guitar) and have that choice **persist** across sessions.
-4. **No external assets** — Everything is driven by the **Web Audio API** (oscillators, gain, envelopes) so we don’t depend on sample files or extra dependencies.
+4. **Actually awesome** — We aim for sonification that sounds **great**, not just “good enough.” We do **not** believe we can achieve that with the native Web Audio API alone (oscillators are too limited). We **need to find a JavaScript library** that can do this for us — better synthesis, real instrument timbres, or similar — and integrate it while keeping our step → sound mapping and UI.
 
 We are **not** trying to:
 
@@ -54,13 +54,13 @@ Implementation: each preset sets oscillator type, attack time, decay time, and (
 ### 4. UI and persistence
 
 - **Sound on/off** — Toggle in the algorithm player controls; when off, no `playStep` calls.
-- **Preset selector** — Dropdown (Synth / Organ / Piano / Guitar) shown when sound is on.
+- **Preset selector** — Shadcn **DropdownMenu** (Synth / Organ / Piano / Guitar) shown when sound is on; implemented with `@/components/ui/dropdown-menu` (trigger shows current preset, radio items for selection).
 - **Persistence** — The selected preset is stored in **localStorage** under `algoviz-sound-preset` and restored on the next visit (after mount, to avoid hydration issues).
 
 ### 5. Integration points
 
 - **AlgorithmPlayer** — Holds `soundEnabled` and `soundPreset` state; calls `playStep(currentStep, soundPreset)` when the step or preset changes; passes preset and handlers to **Controls**.
-- **Controls** — Renders the Sound toggle and the preset dropdown; calls `onSoundPresetChange` and (via parent) `setStoredSoundPreset` when the user changes the preset.
+- **Controls** — Renders the Sound toggle and the shadcn preset dropdown (DropdownMenu); calls `onSoundPresetChange` and (via parent) `setStoredSoundPreset` when the user changes the preset.
 - **algorithm-sound.ts** — Exposes `playStep(step, preset)`, `resumeAudioContext()`, `getStoredSoundPreset()`, `setStoredSoundPreset()`, and the preset type/labels for the UI.
 
 ---
@@ -74,10 +74,24 @@ Implementation: each preset sets oscillator type, attack time, decay time, and (
 
 ---
 
+## We need a JavaScript library (not optional)
+
+Our aim is to make the sonification **awesome**. The current implementation uses raw Web Audio oscillators; the presets (Synth, Organ, Piano, Guitar) are **approximations** and don’t sound like real instruments. We do **not** think we can get to “awesome” with the native API alone — it’s too limited.
+
+So we **need to find a JavaScript library** that can do this for us: better synthesis, real instrument timbres, or high-quality sound, while:
+
+- Fitting our **step → sound mapping** (we tell it “play these notes for this step”),
+- Working in the **browser** with no backend,
+- Keeping the same **UI** (preset choice, persistence) and **playStep(step, preset)** integration.
+
+Once we have a suitable library, we swap the internals of `algorithm-sound.ts` and plug it in. Finding that library is a **requirement** to reach our goal, not an optional improvement.
+
+---
+
 ## File and API reference
 
 - **`app/lib/algorithm-sound.ts`** — All synthesis logic, preset definitions, and localStorage helpers.
-- **`components/controls/Controls.tsx`** — Sound toggle and preset dropdown.
+- **`components/controls/Controls.tsx`** — Sound toggle and shadcn DropdownMenu preset selector.
 - **`components/algorithm-player/AlogorithmPlayer.tsx`** — Sound state, persistence on change, and calling `playStep(step, soundPreset)`.
 
 Public API from `algorithm-sound.ts`:

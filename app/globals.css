@@ -10,6 +10,8 @@
   --muted-foreground: 240 4% 46%;
   --secondary: 240 5% 96%;
   --border: 240 6% 90%;
+  --popover: #ffffff;
+  --popover-foreground: #0a0a0a;
 }
 
 /* Dark mode */
@@ -22,6 +24,8 @@
   --muted-foreground: 240 5% 65%;
   --secondary: 240 6% 14%;
   --border: 240 6% 18%;
+  --popover: #14141a;
+  --popover-foreground: #fafafa;
 }
 
 @theme inline {
@@ -33,6 +37,8 @@
   --color-muted-foreground: hsl(var(--muted-foreground));
   --color-secondary: hsl(var(--secondary));
   --color-border: hsl(var(--border));
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
   --font-display: var(--font-geist-sans);
