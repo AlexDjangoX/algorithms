@@ -1,0 +1,172 @@
+'use client';
+
+import { useEffect } from 'react';
+import { useAlgorithmPlayer } from '@/app/lib/use-algorithm-player';
+import { BarViz } from '@/components/visualization/BarViz';
+import { CodeViewer } from '@/components/code-viewer/CodeViewer';
+import { Controls } from '@/components/controls/Controls';
+import type { LibrarySortData } from '@/algorithms/library-sort/algorithm';
+import type { AlgorithmStep } from '@/app/lib/types';
+
+interface AlgorithmPlayerProps<TData = LibrarySortData> {
+  createGenerator: () => Generator<AlgorithmStep<TData>, void, unknown>;
+  code: string;
+  filename?: string;
+  /** On large screens: code + controls left, children + viz + status right. Default 'column' keeps single column. */
+  layout?: 'column' | 'split';
+  children?: React.ReactNode;
+  /** Custom visualization; when provided, defaultVizData is used for empty state. */
+  Visualization?: React.ComponentType<{ data: TData }>;
+  defaultVizData?: TData;
+}
+
+const DEFAULT_LIBRARY_SORT_DATA: LibrarySortData = {
+  array: [],
+  input: [],
+};
+
+export function AlgorithmPlayer<TData = LibrarySortData>({
+  createGenerator,
+  code,
+  filename,
+  layout = 'column',
+  children,
+  Visualization,
+  defaultVizData,
+}: AlgorithmPlayerProps<TData>) {
+  const {
+    currentStep,
+    stepIndex,
+    totalSteps,
+    isPlaying,
+    isComplete,
+    speed,
+    play,
+    pause,
+    stepForward,
+    stepBack,
+    reset,
+    setSpeed,
+    goToStep,
+  } = useAlgorithmPlayer<TData>({
+    createGenerator,
+    onComplete: () => {},
+  });
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (
+        e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLTextAreaElement
+      )
+        return;
+      switch (e.key) {
+        case ' ':
+          e.preventDefault();
+          if (isPlaying) pause();
+          else play();
+          break;
+        case 'ArrowRight':
+          e.preventDefault();
+          stepForward();
+          break;
+        case 'ArrowLeft':
+          e.preventDefault();
+          stepBack();
+          break;
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isPlaying, play, pause, stepForward, stepBack]);
+
+  const vars = currentStep?.variables;
+  const vizData = Visualization
+    ? (currentStep?.data ?? defaultVizData)
+    : (currentStep?.data ?? DEFAULT_LIBRARY_SORT_DATA);
+  const barViz = Visualization ? (
+    <Visualization data={vizData as TData} />
+  ) : (
+    <BarViz data={vizData as LibrarySortData} />
+  );
+  const statusBlock = (
+    <div className="flex flex-wrap items-center gap-3 rounded-xl border border-border bg-secondary/80 px-4 py-3">
+      <p className="flex-1 text-sm text-foreground min-w-0">
+        {currentStep?.description ?? 'Click ▶ Play or Step → to start'}
+      </p>
+      {vars && Object.keys(vars).length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {Object.entries(vars).map(([key, value]) => (
+            <span
+              key={key}
+              className="flex items-center gap-1 rounded-md border border-border bg-background/80 px-2 py-1"
+            >
+              <span className="font-mono text-xs text-muted-foreground">
+                {key}
+              </span>
+              <span className="font-mono text-xs font-semibold text-primary">
+                {String(value)}
+              </span>
+            </span>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+  const codeViewer = (
+    <CodeViewer
+      code={code}
+      highlightRange={currentStep?.codeRange}
+      filename={filename}
+    />
+  );
+  const controls = (
+    <Controls
+      isPlaying={isPlaying}
+      isComplete={isComplete}
+      stepIndex={stepIndex}
+      totalSteps={totalSteps}
+      speed={speed}
+      onPlay={play}
+      onPause={pause}
+      onStepForward={stepForward}
+      onStepBack={stepBack}
+      onReset={reset}
+      onSpeedChange={setSpeed}
+      onStepSelect={goToStep}
+    />
+  );
+
+  if (layout === 'split') {
+    return (
+      <div className="flex flex-col gap-6 lg:gap-8">
+        {/* Full-width heading above the columns on all screens; on lg this is the page heading */}
+        {children}
+        {/* Two columns on lg: left = code + controls, right = viz + status. Mobile: viz first, then code. */}
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:gap-8 lg:items-stretch">
+          <div className="flex min-h-0  gap-5 order-2 lg:order-1 flex-col-reverse lg:flex-col lg:min-h-112">
+            <div className="flex min-h-0 flex-1 flex-col gap-5 lg:min-h-80">
+              {codeViewer}
+            </div>
+            {controls}
+          </div>
+          <div className="flex min-h-0 flex-col gap-5 order-1 lg:order-2 lg:min-h-112">
+            <div className="flex min-h-0 flex-1 flex-col gap-5 lg:min-h-80">
+              {barViz}
+              {statusBlock}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-5">
+      {barViz}
+      {statusBlock}
+      {controls}
+      {codeViewer}
+    </div>
+  );
+}

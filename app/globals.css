@@ -1,15 +1,41 @@
 @import "tailwindcss";
 
+/* Light mode (default) */
 :root {
-  --background: #09090b;
+  --background: #fafafa;
+  --foreground: #0a0a0a;
+  --primary: 250 84% 54%;
+  --primary-foreground: #fff;
+  --accent: 280 70% 50%;
+  --muted-foreground: 240 4% 46%;
+  --secondary: 240 5% 96%;
+  --border: 240 6% 90%;
+}
+
+/* Dark mode */
+.dark {
+  --background: #0a0a0f;
   --foreground: #fafafa;
+  --primary: 250 84% 54%;
+  --primary-foreground: #fff;
+  --accent: 280 70% 60%;
+  --muted-foreground: 240 5% 65%;
+  --secondary: 240 6% 14%;
+  --border: 240 6% 18%;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: var(--primary-foreground);
+  --color-accent: hsl(var(--accent));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-border: hsl(var(--border));
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-display: var(--font-geist-sans);
 }
 
 body {
@@ -18,20 +44,48 @@ body {
   font-family: var(--font-sans), system-ui, sans-serif;
 }
 
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-up {
+  animation: fade-up 0.5s ease-out forwards;
+}
+
+.noise-overlay {
+  position: relative;
+}
+.noise-overlay::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.02;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+}
+
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #18181b;
+  background: hsl(var(--border));
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #3f3f46;
+  background: hsl(var(--muted-foreground) / 0.5);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #52525b;
+  background: hsl(var(--muted-foreground) / 0.7);
 }

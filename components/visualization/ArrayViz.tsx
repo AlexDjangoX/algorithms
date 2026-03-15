@@ -31,7 +31,7 @@ function ArrayCell({
         ${
           isGap
             ? "border-2 border-dashed border-zinc-600 bg-zinc-800"
-            : "bg-gradient-to-br from-emerald-400 to-emerald-600 text-zinc-950 shadow-lg shadow-emerald-500/25"
+            : "bg-linear-to-br from-emerald-400 to-emerald-600 text-zinc-950 shadow-lg shadow-emerald-500/25"
         }
         ${isActive ? "scale-110 shadow-[0_0_24px_rgba(52,211,153,0.5)]" : ""}
       `}

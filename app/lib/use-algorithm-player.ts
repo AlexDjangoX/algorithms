@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { AlgorithmStep } from "./types";
+import type { AlgorithmStep } from "@/app/lib/types";
 
 const DEFAULT_SPEED = 1;
 const STEP_DURATION_MS = 800;
@@ -74,10 +74,10 @@ export function useAlgorithmPlayer<TData>({
     }
   }, [collectSteps, onStep]);
 
-  // Initialize on mount so bars are visible immediately
+  // Initialize on mount so bars are visible immediately (defer to avoid setState-in-effect)
   useEffect(() => {
-    reset();
-  }, [createGenerator]); // eslint-disable-line react-hooks/exhaustive-deps
+    queueMicrotask(() => reset());
+  }, [reset]);
 
   const stepForward = useCallback(() => {
     const steps = stepsRef.current;
@@ -144,9 +144,11 @@ export function useAlgorithmPlayer<TData>({
 
     const steps = stepsRef.current;
     if (stepIndex >= steps.length - 1) {
-      setIsPlaying(false);
-      isPlayingRef.current = false;
-      onComplete?.();
+      queueMicrotask(() => {
+        setIsPlaying(false);
+        isPlayingRef.current = false;
+        onComplete?.();
+      });
       return;
     }
 

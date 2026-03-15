@@ -4,8 +4,9 @@ import { gsap } from "gsap";
 import { useEffect, useMemo, useRef } from "react";
 import type { LibrarySortData } from "@/algorithms/library-sort/algorithm";
 
-const BAR_H = 190; // max bar height px
-const PAD_B = 16;  // bottom padding
+// Slightly taller so bottom of viz + status lines up with progress bar
+const BAR_H = 384;
+const PAD_B = 24;
 
 function barColor(value: number, max: number) {
   const t = value / max;
@@ -133,8 +134,8 @@ export function BarViz({ data }: { data: LibrarySortData }) {
   return (
     <div
       ref={containerRef}
-      className="relative overflow-hidden rounded-2xl ring-1 ring-white/5"
-      style={{ background: "#13141f", height: BAR_H + PAD_B * 2 }}
+      className="relative overflow-hidden rounded-2xl border border-border bg-secondary/80"
+      style={{ height: BAR_H + PAD_B * 2 }}
     >
       <div
         style={{
@@ -145,7 +146,7 @@ export function BarViz({ data }: { data: LibrarySortData }) {
           height: BAR_H,
         }}
       >
-        {input.map((val, idx) => (
+        {input.map((val) => (
           <div
             key={val}
             ref={(el) => {

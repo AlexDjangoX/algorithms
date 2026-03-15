@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 interface ControlsProps {
   isPlaying: boolean;
@@ -34,16 +34,15 @@ export function Controls({
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-center gap-3">
-
         {/* Step back */}
         <button
           onClick={onStepBack}
           disabled={stepIndex <= 0}
           className="
             flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg
-            bg-zinc-800 text-zinc-200
+            bg-secondary text-foreground border border-border
             transition-all duration-150
-            hover:bg-zinc-700 hover:scale-110 hover:shadow-lg
+            hover:bg-secondary/80 hover:scale-110 hover:shadow-lg
             active:scale-95
             disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-none
           "
@@ -54,27 +53,31 @@ export function Controls({
           </svg>
         </button>
 
-        {/* Play / Pause */}
+        {/* Play / Pause - compact to match step buttons */}
         <button
           onClick={isPlaying ? onPause : onPlay}
           disabled={isComplete && stepIndex >= totalSteps - 1 && totalSteps > 0}
           className="
-            flex h-14 w-14 cursor-pointer items-center justify-center rounded-2xl
-            bg-rose-500 text-white
-            shadow-lg shadow-rose-500/30
+            flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl
+            bg-primary text-primary-foreground
+            shadow-md shadow-primary/25
             transition-all duration-150
-            hover:bg-rose-400 hover:scale-110 hover:shadow-xl hover:shadow-rose-500/40
+            hover:opacity-90 hover:scale-105 hover:shadow-lg hover:shadow-primary/30
             active:scale-95
-            disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-lg
+            disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-md
           "
-          title={isPlaying ? "Pause (Space)" : "Play (Space)"}
+          title={isPlaying ? 'Pause (Space)' : 'Play (Space)'}
         >
           {isPlaying ? (
-            <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 20 20">
+            <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
               <path d="M5.75 3a.75.75 0 00-.75.75v12.5c0 .414.336.75.75.75h1.5a.75.75 0 00.75-.75V3.75A.75.75 0 007.25 3h-1.5zM14.25 3a.75.75 0 00-.75.75v12.5c0 .414.336.75.75.75h1.5a.75.75 0 00.75-.75V3.75a.75.75 0 00-.75-.75h-1.5z" />
             </svg>
           ) : (
-            <svg className="ml-0.5 h-6 w-6" fill="currentColor" viewBox="0 0 20 20">
+            <svg
+              className="ml-0.5 h-4 w-4"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
               <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />
             </svg>
           )}
@@ -86,9 +89,9 @@ export function Controls({
           disabled={stepIndex >= totalSteps - 1}
           className="
             flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg
-            bg-zinc-800 text-zinc-200
+            bg-secondary text-foreground border border-border
             transition-all duration-150
-            hover:bg-zinc-700 hover:scale-110 hover:shadow-lg
+            hover:bg-secondary/80 hover:scale-110 hover:shadow-lg
             active:scale-95
             disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-none
           "
@@ -103,10 +106,10 @@ export function Controls({
         <button
           onClick={onReset}
           className="
-            cursor-pointer rounded-lg bg-zinc-800 px-4 py-2
-            text-sm font-medium text-zinc-200
+            cursor-pointer rounded-lg bg-secondary border border-border px-4 py-2
+            text-sm font-medium text-foreground
             transition-all duration-150
-            hover:bg-zinc-700 hover:scale-105 hover:shadow-lg
+            hover:bg-secondary/80 hover:scale-105 hover:shadow-lg
             active:scale-95
           "
           title="Reset"
@@ -116,7 +119,7 @@ export function Controls({
 
         {/* Speed */}
         <div className="flex items-center gap-2">
-          <span className="text-xs text-zinc-500">Speed</span>
+          <span className="text-xs text-muted-foreground">Speed</span>
           <div className="flex gap-1">
             {SPEED_OPTIONS.map((s) => (
               <button
@@ -128,8 +131,8 @@ export function Controls({
                   hover:scale-110 active:scale-95
                   ${
                     speed === s
-                      ? "bg-rose-500 text-white shadow-md shadow-rose-500/30"
-                      : "bg-zinc-800 text-zinc-500 hover:bg-zinc-700 hover:text-zinc-200"
+                      ? 'bg-primary text-primary-foreground shadow-md shadow-primary/30'
+                      : 'bg-secondary text-muted-foreground border border-border hover:bg-secondary/80 hover:text-foreground'
                   }
                 `}
               >
@@ -149,9 +152,9 @@ export function Controls({
             max={totalSteps - 1}
             value={stepIndex}
             onChange={(e) => onStepSelect?.(parseInt(e.target.value, 10))}
-            className="h-2 flex-1 cursor-pointer appearance-none rounded-full bg-zinc-800 accent-rose-500"
+            className="h-2 flex-1 cursor-pointer appearance-none rounded-full bg-secondary accent-primary border border-border"
           />
-          <span className="tabular-nums text-xs text-zinc-500">
+          <span className="tabular-nums text-xs text-muted-foreground">
             {stepIndex + 1} / {totalSteps}
           </span>
         </div>

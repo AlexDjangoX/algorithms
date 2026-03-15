@@ -38,6 +38,11 @@ The goal is simple: **make algorithms intuitive, not intimidating.**
 - **Responsive two-column layout on large screens** — code viewer pinned on the left, animated bar chart on the right — both visible simultaneously
 - **Single-column stacked layout on mobile**
 
+### Modularity
+- **Single dynamic route** — every algorithm is served from `/algorithms/[slug]`; no per-algorithm page or layout files
+- **Algorithm registry** — one place wires metadata, code, generator, and optional visualization per slug
+- **Reusable visualizations** — `BarArrayViz` for any array-with-highlights algorithm (bubble, insertion, etc.); custom viz for special cases (e.g. Library Sort’s gapped bars)
+
 ### Variables Panel
 - Live display of all algorithm variables at the current step (e.g. `val`, `pos`, `round`, `insPos`)
 
@@ -58,50 +63,88 @@ The goal is simple: **make algorithms intuitive, not intimidating.**
 
 ## Architecture
 
+Component files use **PascalCase** (e.g. `BarViz.tsx`, `AlgorithmPageContent.tsx`). Folders use **kebab-case** (e.g. `algorithm-player/`, `code-viewer/`). One dynamic route serves all algorithms; no per-algorithm pages or layouts.
+
 ```
-algorithms/
-├── algorithms/
-│   └── library-sort/
-│       ├── algorithm.ts     # Generator function — yields AlgorithmStep on every operation
-│       └── code.ts          # Source code string displayed in the code viewer
+.
+├── algorithms/                        # One folder per algorithm (generator + code)
+│   ├── library-sort/
+│   │   ├── algorithm.ts              # Generator yielding AlgorithmStep
+│   │   └── code.ts                   # Display code string
+│   ├── bubble-sort/
+│   │   ├── algorithm.ts
+│   │   └── code.ts
+│   └── README.md                     # "Adding a new algorithm" guide
 ├── app/
-│   ├── page.tsx             # Algorithm index / home page
-│   ├── layout.tsx           # Root layout (Geist font, dark theme)
+│   ├── layout.tsx                   # Root layout (theme, fonts)
+│   ├── page.tsx                     # Home (algorithm cards)
+│   ├── error.tsx
+│   ├── robots.ts
+│   ├── sitemap.ts
+│   ├── hooks/
+│   │   └── use-mobile.ts
+│   ├── lib/
+│   │   ├── algorithm-registry.ts    # slug → code, generator, viz (single source)
+│   │   ├── types.ts                 # AlgorithmStep, CodeRange
+│   │   └── use-algorithm-player.ts   # Step collection, playback state
 │   └── algorithms/
-│       └── library-sort/
-│           └── page.tsx     # Library Sort page — wires generator → AlgorithmPlayer
+│       ├── layout.tsx               # Navbar + Footer for all algorithm pages
+│       └── [slug]/
+│           └── page.tsx             # Dynamic route — one page per algorithm
 ├── components/
-│   ├── algorithm-player/    # Top-level orchestrator (layout, keyboard shortcuts)
-│   ├── code-viewer/         # Syntax-highlighted code panel with green line highlighting
-│   ├── controls/            # Playback controls (play, pause, step, speed, scrubber)
-│   ├── variables-panel/     # Live variable display
+│   ├── algorithm-page/
+│   │   └── AlgorithmPageContent.tsx # Shared page (back link, heading, player)
+│   ├── algorithm-player/
+│   │   └── AlogorithmPlayer.tsx     # Orchestrator (player, code viewer, controls, viz)
+│   ├── algorithm-card/
+│   │   └── AlgorithmCard.tsx        # Card on home grid
+│   ├── code-viewer/
+│   │   └── CodeViewer.tsx           # Syntax-highlighted code + line highlight
+│   ├── controls/
+│   │   └── Controls.tsx             # Play / Pause / Step / Speed / Scrubber
+│   ├── home/
+│   │   └── AlgorithmGrid.tsx        # Home page grid of algorithm cards
+│   ├── layout/
+│   │   ├── Navbar.tsx
+│   │   └── Footer.tsx
+│   ├── navigation/
+│   │   └── NavLink.tsx
+│   ├── providers/
+│   │   └── ThemeProvider.tsx        # next-themes
+│   ├── variables-panel/
+│   │   └── VariablesPanel.tsx      # Live variables at current step
 │   └── visualization/
-│       └── bar-viz.tsx      # GSAP-animated bar chart with collision-free slot algorithm
-└── lib/
-    ├── types.ts             # AlgorithmStep, CodeRange, AlgorithmMetadata interfaces
-    └── use-algorithm-player.ts  # Custom hook — step collection, playback state machine
+│       ├── BarViz.tsx               # Library Sort — gapped array, collision-free slots
+│       └── BarArrayViz.tsx          # Generic array + highlightIndices
+├── lib/
+│   ├── data/
+│   │   └── algorithms.ts            # Metadata (slug, name, complexity, status)
+│   └── utils.ts
+└── public/
+    └── image.png
 ```
 
 ### How an Algorithm is Added
 
-Every algorithm is a **TypeScript generator function** that `yield`s an `AlgorithmStep` at each meaningful operation:
+There are **no per-algorithm page or layout files**. Adding an algorithm is three steps:
+
+1. **Metadata** — One entry in `lib/data/algorithms.ts` (slug, name, description, complexity, `status: 'live'`).
+2. **Implementation** — `algorithms/<slug>/algorithm.ts` (generator) and `algorithms/<slug>/code.ts` (code string).
+3. **Registry** — One entry in `app/lib/algorithm-registry.ts` (wire code, generator, and optional viz).
+
+See **`algorithms/README.md`** for the full step-by-step guide. The dynamic route `app/algorithms/[slug]` and shared `AlgorithmPageContent` render every algorithm from the registry.
+
+Every algorithm is a **generator** that `yield`s an `AlgorithmStep` at each meaningful operation:
 
 ```typescript
-export function* librarySortGenerator(
-  input: number[] = DEFAULT_INPUT
-): Generator<AlgorithmStep<LibrarySortData>, void, unknown> {
-
-  yield createStep("pick_value", { array: S, input, insertingValue: val },
-    `Pick next element: ${val}`,
-    { start: 13, end: 15 },
-    { variables: { val, pos, round } }
-  );
-
-  // ... more yields per operation
-}
+yield createStep("compare", { array: [...arr], highlightIndices: [j, j + 1] },
+  `Compare arr[${j}] and arr[${j + 1}]`,
+  { start: 6, end: 8 },
+  { variables: { j, "arr[j]": arr[j], "arr[j+1]": arr[j + 1] } }
+);
 ```
 
-The `useAlgorithmPlayer` hook eagerly collects all steps into an array on mount, enabling instant scrubbing to any position without re-running the generator.
+The `useAlgorithmPlayer` hook collects all steps on mount, enabling instant scrubbing without re-running the generator.
 
 ### Collision-Free Slot Assignment
 
@@ -150,7 +193,7 @@ npm start
 | Algorithm | Category | Time Complexity | Space Complexity | Status |
 |---|---|---|---|---|
 | Library Sort | Sorting | O(n · log n) | O(n) | ✅ Live |
-| Bubble Sort | Sorting | O(n²) | O(1) | 🔜 Planned |
+| Bubble Sort | Sorting | O(n²) | O(1) | ✅ Live |
 | Merge Sort | Sorting | O(n · log n) | O(n) | 🔜 Planned |
 | Quick Sort | Sorting | O(n · log n) avg | O(log n) | 🔜 Planned |
 | Binary Search | Searching | O(log n) | O(1) | 🔜 Planned |
@@ -170,13 +213,13 @@ npm start
 
 ## Contributing
 
-Adding a new algorithm requires three files:
+Adding a new algorithm requires **no new page or layout files**. Three steps:
 
-1. **`algorithms/<name>/algorithm.ts`** — the generator function that yields `AlgorithmStep` objects
-2. **`algorithms/<name>/code.ts`** — the source code string shown in the viewer
-3. **`app/algorithms/<name>/page.tsx`** — the Next.js page that wires the generator into `<AlgorithmPlayer>`
+1. **`lib/data/algorithms.ts`** — Add (or flip to `status: 'live'`) one metadata entry (slug, name, description, complexity).
+2. **`algorithms/<slug>/`** — Add `algorithm.ts` (generator that yields `AlgorithmStep`) and `code.ts` (display code string).
+3. **`app/lib/algorithm-registry.ts`** — Add one entry wiring code, generator, and optional viz.
 
-The visualisation, controls, code viewer, and variables panel are fully generic — they require no changes to support a new algorithm.
+The player, controls, code viewer, and shared viz (e.g. `BarArrayViz` for array + highlights) are fully generic. See **`algorithms/README.md`** for the detailed guide.
 
 ---
 

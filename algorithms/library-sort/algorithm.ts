@@ -1,4 +1,4 @@
-import type { AlgorithmStep } from "@/lib/types";
+import type { AlgorithmStep } from '@/app/lib/types';
 
 export interface LibrarySortData {
   array: (number | null)[];
@@ -7,12 +7,14 @@ export interface LibrarySortData {
   insertingValue?: number;
 }
 
-export const DEFAULT_INPUT = [4, 12, 7, 15, 2, 9, 5, 11, 3, 14, 8, 1, 13, 6, 10];
+export const DEFAULT_INPUT = [
+  4, 12, 7, 15, 2, 9, 5, 11, 3, 14, 8, 1, 13, 6, 10,
+];
 
 function binarySearchPos(
   val: number,
   S: (number | null)[],
-  len: number
+  len: number,
 ): number {
   let lo = 0;
   let hi = len - 1;
@@ -34,7 +36,7 @@ function binarySearchPos(
 function findInsertPosition(
   val: number,
   S: (number | null)[],
-  len: number
+  len: number,
 ): number {
   let pos = binarySearchPos(val, S, len);
   while (pos < len && S[pos] !== null) pos++;
@@ -49,13 +51,13 @@ function createStep(
   data: LibrarySortData,
   description: string,
   codeRange: { start: number; end: number },
-  overrides?: Partial<AlgorithmStep<LibrarySortData>>
+  overrides?: Partial<AlgorithmStep<LibrarySortData>>,
 ): AlgorithmStep<LibrarySortData> {
   return { id, data, action: id, codeRange, description, ...overrides };
 }
 
 export function* librarySortGenerator(
-  input: number[] = DEFAULT_INPUT
+  input: number[] = DEFAULT_INPUT,
 ): Generator<AlgorithmStep<LibrarySortData>, void, unknown> {
   const n = input.length;
   const epsilon = 0.5;
@@ -64,10 +66,10 @@ export function* librarySortGenerator(
 
   // First step: show input bars (S is empty — all bars rendered at input positions)
   yield createStep(
-    "init_input",
+    'init_input',
     { array: [...S], input: [...input] },
-    `Input: [${input.join(", ")}] — ${n} elements to sort`,
-    { start: 1, end: 2 }
+    `Input: [${input.join(', ')}] — ${n} elements to sort`,
+    { start: 1, end: 2 },
   );
 
   let pos = 0;
@@ -78,29 +80,32 @@ export function* librarySortGenerator(
     round++;
 
     yield createStep(
-      "round_start",
+      'round_start',
       { array: S.map((x) => x), input: [...input] },
       `Round ${round}: inserting up to ${goal} element(s)`,
       { start: 10, end: 12 },
-      { variables: { round, goal, pos } }
+      { variables: { round, goal, pos } },
     );
 
     for (let i = 0; i < goal && pos < n; i++) {
       const val = input[pos];
-      const len = Math.min(sLen, (round === 1 ? 1 : Math.pow(2, round - 1)) * 2);
+      const len = Math.min(
+        sLen,
+        (round === 1 ? 1 : Math.pow(2, round - 1)) * 2,
+      );
 
       yield createStep(
-        "pick_value",
+        'pick_value',
         { array: S.map((x) => x), input: [...input], insertingValue: val },
         `Pick next element: ${val}`,
         { start: 13, end: 15 },
-        { variables: { val, pos, round } }
+        { variables: { val, pos, round } },
       );
 
       const insPos = findInsertPosition(val, S, len);
 
       yield createStep(
-        "binary_search",
+        'binary_search',
         {
           array: S.map((x) => x),
           input: [...input],
@@ -109,7 +114,7 @@ export function* librarySortGenerator(
         },
         `Binary search: insert ${val} at position ${insPos}`,
         { start: 17, end: 17 },
-        { variables: { val, insPos, pos }, highlights: [insPos] }
+        { variables: { val, insPos, pos }, highlights: [insPos] },
       );
 
       if (S[insPos] !== null) {
@@ -118,7 +123,7 @@ export function* librarySortGenerator(
           [S[j], S[j + 1]] = [S[j + 1], S[j]];
           j++;
           yield createStep(
-            "shift",
+            'shift',
             {
               array: S.map((x) => x),
               input: [...input],
@@ -127,7 +132,7 @@ export function* librarySortGenerator(
             },
             `Shift right to make room for ${val}`,
             { start: 19, end: 24 },
-            { variables: { val, insPos, j }, highlights: [j, j - 1] }
+            { variables: { val, insPos, j }, highlights: [j, j - 1] },
           );
         }
       }
@@ -136,7 +141,7 @@ export function* librarySortGenerator(
       pos++;
 
       yield createStep(
-        "insert",
+        'insert',
         {
           array: S.map((x) => x),
           input: [...input],
@@ -145,7 +150,7 @@ export function* librarySortGenerator(
         },
         `Inserted ${val} at position ${insPos}`,
         { start: 26, end: 28 },
-        { variables: { val, insPos, pos }, highlights: [insPos] }
+        { variables: { val, insPos, pos }, highlights: [insPos] },
       );
     }
 
@@ -157,11 +162,11 @@ export function* librarySortGenerator(
     const step = Math.floor(newLen / prevLen);
 
     yield createStep(
-      "rebalance_start",
+      'rebalance_start',
       { array: S.map((x) => x), input: [...input] },
-      "Rebalance: spread elements with fresh gaps",
+      'Rebalance: spread elements with fresh gaps',
       { start: 32, end: 34 },
-      { variables: { prevLen, newLen, goal } }
+      { variables: { prevLen, newLen, goal } },
     );
 
     for (let j = prevLen - 1; j >= 0; j--) {
@@ -169,10 +174,10 @@ export function* librarySortGenerator(
       if (w > 0) S[w - 1] = null;
       w -= step;
       yield createStep(
-        "rebalance",
+        'rebalance',
         { array: S.map((x) => x), input: [...input] },
-        "Rebalancing...",
-        { start: 36, end: 40 }
+        'Rebalancing...',
+        { start: 36, end: 40 },
       );
     }
 
@@ -184,9 +189,9 @@ export function* librarySortGenerator(
   }
 
   yield createStep(
-    "done",
+    'done',
     { array: S.map((x) => x), input: [...input] },
-    "Sort complete! ✓",
-    { start: 43, end: 43 }
+    'Sort complete! ✓',
+    { start: 43, end: 43 },
   );
 }
