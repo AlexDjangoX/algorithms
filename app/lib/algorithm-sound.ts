@@ -430,6 +430,36 @@ export function playStep(
     return;
   }
 
+  // BST compare — play inserting value against the node value being compared
+  const bstNodeVal = vars['current'];
+  if (
+    step.id === 'compare' &&
+    typeof bstNodeVal === 'number' &&
+    typeof data?.insertingValue === 'number'
+  ) {
+    playNote(note(data.insertingValue), dur, preset, 0, 0.72);
+    playNote(note(bstNodeVal), dur * 0.65, preset, dur * 0.12, 0.52);
+    return;
+  }
+
+  // BST traversal and placement steps
+  if (['go_left', 'go_right', 'place_left', 'place_right', 'place', 'start_insert'].includes(step.id)) {
+    const v = data?.insertingValue;
+    if (typeof v === 'number') {
+      playNote(note(v), dur, preset, 0, 0.65);
+      return;
+    }
+  }
+
+  // Bead sort: place (beads in column) or gravity (beads in row)
+  if (['place', 'gravity'].includes(step.id)) {
+    const v = vars['beads'] ?? vars['count'];
+    if (typeof v === 'number') {
+      playNote(note(v), dur, preset, 0, 0.6);
+      return;
+    }
+  }
+
   // compare (bubble sort) or shift (library sort) — two highlighted indices
   if (indices.length >= 2 && arr.length > 0) {
     const a = arr[indices[0]!];

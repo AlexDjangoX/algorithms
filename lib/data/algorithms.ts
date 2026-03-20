@@ -38,6 +38,24 @@ export const ALGORITHMS: Algorithm[] = [
     status: 'live',
   },
   {
+    slug: 'bead-sort',
+    name: 'Bead Sort',
+    category: 'Sorting',
+    description:
+      'Simulates gravity: beads placed at the top of each column fall down to produce sorted order.',
+    complexity: { time: 'O(n · S)', space: 'O(n · S)' },
+    status: 'live',
+  },
+  {
+    slug: 'binary-search-tree',
+    name: 'Binary Search Tree',
+    category: 'Trees',
+    description:
+      'Inserts values one by one, traversing left when smaller and right when larger to find each insertion point.',
+    complexity: { time: 'O(h) per insert', space: 'O(n)' },
+    status: 'live',
+  },
+  {
     slug: 'quick-sort',
     name: 'Quick Sort',
     category: 'Sorting',
