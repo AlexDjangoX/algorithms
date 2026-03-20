@@ -24,7 +24,7 @@ export function* insertionSortGenerator(
   yield createStep(
     'init',
     { inputSequence, array: [...arr] },
-    `Insertion sort: build a sorted prefix from left to right — ${n} elements`,
+    `Input: [${arr.join(', ')}] — n = ${n}; insertion sort inserts arr[i] into sorted arr[0..i-1]`,
     { start: 1, end: 3 },
     { variables: { n } },
   );
@@ -45,7 +45,7 @@ export function* insertionSortGenerator(
     yield createStep(
       'insert_pass',
       { inputSequence, array: [...arr], highlightIndices: highlights },
-      `Place ${key} at index ${from} — sorted prefix is now indices 0…${i}`,
+      `key = arr[${i}] = ${key}; after shift: arr[${from}] = key; sorted range arr[0..${i}]`,
       { start: 5, end: 9 },
       { variables: { i, key, placedAt: from } },
     );

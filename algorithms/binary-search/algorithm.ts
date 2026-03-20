@@ -56,7 +56,7 @@ export function* binarySearchGenerator(
       highlightIndices: [],
       range: null,
     },
-    `Phase 1: sort the array — binary search only works on sorted data`,
+    `Phase 1: sort arr — input: [${arr.join(', ')}], n = ${n}, then binary search needs sorted arr`,
     { start: 1, end: 3 },
     { variables: { n, target } },
   );
@@ -84,7 +84,7 @@ export function* binarySearchGenerator(
         highlightIndices: highlights,
         range: null,
       },
-      `Insert ${key}: shift and place at index ${from} (first ${i + 1} positions sorted)`,
+      `key = arr[${i}] = ${key}; after while: arr[${from}] = key; arr[0..${i}] non-decreasing`,
       { start: 5, end: 9 },
       { variables: { i, key, placedAt: from } },
     );
@@ -100,7 +100,7 @@ export function* binarySearchGenerator(
       highlightIndices: [],
       range: null,
     },
-    `Phase 1 done — sorted. Phase 2: binary search for target = ${target}`,
+    `arr sorted: [${arr.join(', ')}]; Phase 2: binary search for target === ${target}`,
     { start: 11, end: 11 },
     { variables: { target, n } },
   );
@@ -115,7 +115,7 @@ export function* binarySearchGenerator(
       highlightIndices: [],
       range: { lo: 0, hi: n - 1 },
     },
-    `Phase 2: halve the range each step — lo = 0, hi = ${n - 1}`,
+    `let lo = 0, hi = ${n - 1}; while (lo <= hi) { mid = (lo + hi) >> 1; … }`,
     { start: 13, end: 17 },
     { variables: { target, lo: 0, hi: n - 1 } },
   );
@@ -153,7 +153,7 @@ export function* binarySearchGenerator(
           highlightIndices: [mid],
           range: { lo: mid, hi: mid, mid },
         },
-        `Found at index ${mid}: arr[${mid}] === ${target} ✓`,
+        `arr[${mid}] === target /* ${target} */ → return ${mid}`,
         { start: 19, end: 19 },
         { variables: { result: mid, target } },
       );
@@ -172,7 +172,7 @@ export function* binarySearchGenerator(
           highlightIndices: [lo, hi],
           range: { lo, hi },
         },
-        `${midVal} < ${target} → search right: lo = ${lo}`,
+        `arr[mid] < target → lo = mid + 1 /* lo = ${lo} */`,
         { start: 20, end: 20 },
         { variables: { lo, hi, midVal, target } },
       );
@@ -188,7 +188,7 @@ export function* binarySearchGenerator(
           highlightIndices: [lo, hi],
           range: { lo, hi },
         },
-        `${midVal} > ${target} → search left: hi = ${hi}`,
+        `arr[mid] > target → hi = mid - 1 /* hi = ${hi} */`,
         { start: 21, end: 21 },
         { variables: { lo, hi, midVal, target } },
       );

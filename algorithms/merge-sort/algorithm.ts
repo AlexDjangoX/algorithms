@@ -26,7 +26,7 @@ export function* mergeSortGenerator(
   yield createStep(
     'init',
     { inputSequence, array: [...arr] },
-    `Input: [${arr.join(', ')}] — ${n} elements (bottom-up merge sort)`,
+    `Input: [${arr.join(', ')}] — n = ${n}; bottom-up merge on arr, run size doubles each pass`,
     { start: 1, end: 3 },
   );
 
@@ -58,7 +58,7 @@ export function* mergeSortGenerator(
         yield createStep(
           'compare',
           { inputSequence, array: [...arr], highlightIndices: [k] },
-          `Compare ${left[i]} and ${right[j]} — take smaller into position ${k}`,
+          `compare left[i]=${left[i]} vs right[j]=${right[j]}; write smaller to arr[${k}]`,
           { start: 13, end: 15 },
           { variables: { i, j, k, left: left[i], right: right[j] } },
         );
@@ -94,7 +94,7 @@ export function* mergeSortGenerator(
       yield createStep(
         'merge_done',
         { inputSequence, array: [...arr] },
-        `Merged run [${leftStart}..${rightEnd}]`,
+        `merged arr[${leftStart}..${rightEnd}] into one sorted segment`,
         { start: 23, end: 25 },
         { variables: { leftStart, rightEnd } },
       );

@@ -96,7 +96,7 @@ export function* librarySortGenerator(
       yield createStep(
         'pick_value',
         { array: S.map((x) => x), input: [...input], insertingValue: val },
-        `Pick next element: ${val}`,
+        `val = input[${pos}] /* = ${val} */`,
         { start: 13, end: 15 },
         { variables: { val, pos, round } },
       );
@@ -111,7 +111,7 @@ export function* librarySortGenerator(
           activeIndex: insPos,
           insertingValue: val,
         },
-        `Binary search: insert ${val} at position ${insPos}`,
+        `binarySearch → insert index insPos = ${insPos}; next S[${insPos}] = ${val}`,
         { start: 18, end: 18 },
         { variables: { val, insPos, pos }, highlights: [insPos] },
       );
@@ -129,7 +129,7 @@ export function* librarySortGenerator(
               activeIndex: j,
               insertingValue: val,
             },
-            `Shift right to make room for ${val}`,
+            `S[${j - 1}] ↔ S[${j}] /* shift right for gap at insPos */`,
             { start: 20, end: 25 },
             { variables: { val, insPos, j }, highlights: [j, j - 1] },
           );
@@ -147,7 +147,7 @@ export function* librarySortGenerator(
           activeIndex: insPos,
           insertingValue: val,
         },
-        `Inserted ${val} at position ${insPos}`,
+        `S[${insPos}] = ${val}`,
         { start: 28, end: 29 },
         { variables: { val, insPos, pos }, highlights: [insPos] },
       );
@@ -163,7 +163,7 @@ export function* librarySortGenerator(
     yield createStep(
       'rebalance_start',
       { array: S.map((x) => x), input: [...input] },
-      'Rebalance: spread elements with fresh gaps',
+      'rebalance: redistribute S[0..] with larger gaps between occupied cells',
       { start: 32, end: 34 },
       { variables: { prevLen, newLen, goal } },
     );

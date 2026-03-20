@@ -26,7 +26,7 @@ export function* bubbleSortGenerator(
   yield createStep(
     'init',
     { inputSequence, array: [...arr] },
-    `Ready to sort ${n} values. The starting order is fixed in the row above; the bars show the array as it changes.`,
+    `Input: [${arr.join(', ')}] — n = ${n}; bubble sort compares arr[j] and arr[j + 1] each pass`,
     { start: 1, end: 2 },
   );
 
@@ -34,7 +34,7 @@ export function* bubbleSortGenerator(
     yield createStep(
       'outer',
       { inputSequence, array: [...arr] },
-      `Outer loop: i = ${i} (remaining ${n - 1 - i} passes)`,
+      `for (let i = ${i}; i < n - 1; i++) — ${n - 1 - i} more outer iterations`,
       { start: 4, end: 4 },
       { variables: { i, n: n - 1 - i } },
     );
@@ -59,7 +59,7 @@ export function* bubbleSortGenerator(
             array: [...arr],
             highlightIndices: [j, j + 1],
           },
-          `Out of order at neighbors ${j} and ${j + 1}: exchanged ${before0} and ${before1}. After the swap, index ${j} is ${arr[j]} and index ${j + 1} is ${arr[j + 1]}.`,
+          `if (arr[${j}] > arr[${j + 1}]) swap — was arr[${j}]=${before0}, arr[${j + 1}]=${before1}; now arr[${j}]=${arr[j]}, arr[${j + 1}]=${arr[j + 1]}`,
           { start: 7, end: 7 },
           {
             variables: {

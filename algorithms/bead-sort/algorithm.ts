@@ -94,7 +94,7 @@ export function* beadSortGenerator(
     yield createStep(
       'place',
       snap(grid, 'place', undefined, i),
-      `Row ${i}: place ${arr[i]} beads (value = ${arr[i]})`,
+      `for row i = ${i}, arr[${i}] = ${arr[i]} → place ${arr[i]} beads left-to-right`,
       { start: 9, end: 14 },
       { variables: { row: i, beads: arr[i] } },
     );
@@ -114,7 +114,7 @@ export function* beadSortGenerator(
     yield createStep(
       'gravity',
       snap(grid, 'gravity', j),
-      `Rod ${j}: ${count} bead${count !== 1 ? 's' : ''} fall to the bottom`,
+      `for column j = ${j}: pack ${count} bead(s) into bottom rows of grid[i][${j}]`,
       { start: 16, end: 22 },
       { variables: { rod: j, beads: count } },
     );
