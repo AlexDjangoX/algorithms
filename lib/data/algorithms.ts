@@ -76,7 +76,7 @@ export const ALGORITHMS: Algorithm[] = [
     description:
       'Partitions around a pivot and recursively sorts each partition.',
     complexity: { time: 'O(n · log n) avg', space: 'O(log n)' },
-    status: 'coming-soon',
+    status: 'live',
   },
   {
     slug: 'binary-search',

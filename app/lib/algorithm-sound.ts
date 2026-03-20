@@ -20,7 +20,13 @@ import type { AlgorithmStep } from '@/app/lib/types';
 
 // ── Types & constants ─────────────────────────────────────────────────────────
 
-export type SoundPreset = 'synth' | 'organ' | 'piano' | 'guitar' | 'vibraphone' | 'strings';
+export type SoundPreset =
+  | 'synth'
+  | 'organ'
+  | 'piano'
+  | 'guitar'
+  | 'vibraphone'
+  | 'strings';
 
 export const SOUND_PRESET_LABELS: Record<SoundPreset, string> = {
   synth: 'Synth',
@@ -31,7 +37,14 @@ export const SOUND_PRESET_LABELS: Record<SoundPreset, string> = {
   strings: 'Strings',
 };
 
-export const SOUND_PRESETS: SoundPreset[] = ['synth', 'organ', 'piano', 'guitar', 'vibraphone', 'strings'];
+export const SOUND_PRESETS: SoundPreset[] = [
+  'synth',
+  'organ',
+  'piano',
+  'guitar',
+  'vibraphone',
+  'strings',
+];
 
 const STORAGE_KEY = 'algoviz-sound-preset';
 
@@ -113,7 +126,12 @@ function initSynth(T: ToneModule): Triggerable {
     oscillator: { type: 'triangle' },
     envelope: { attack: 0.01, decay: 0.15, sustain: 0.2, release: 0.25 },
     modulation: { type: 'square' },
-    modulationEnvelope: { attack: 0.2, decay: 0.01, sustain: 0.8, release: 0.2 },
+    modulationEnvelope: {
+      attack: 0.2,
+      decay: 0.01,
+      sustain: 0.8,
+      release: 0.2,
+    },
   });
   inst.volume.value = -14;
   inst.toDestination();
@@ -197,9 +215,7 @@ function initPiano(T: ToneModule): Triggerable {
   }
   // Return the real sampler only once all buffers are loaded; otherwise hand
   // back the fallback PolySynth so the user hears something immediately.
-  return pianoReady
-    ? (pianoInst as Triggerable)
-    : initPianoFallback(T);
+  return pianoReady ? (pianoInst as Triggerable) : initPianoFallback(T);
 }
 
 function initVibraphone(T: ToneModule): Triggerable {
@@ -219,7 +235,12 @@ function initVibraphone(T: ToneModule): Triggerable {
 
 function initStrings(T: ToneModule): Triggerable {
   if (stringsInst) return stringsInst as Triggerable;
-  const chorus = new T.Chorus({ frequency: 2.5, delayTime: 3.5, depth: 0.7, wet: 0.4 }).toDestination();
+  const chorus = new T.Chorus({
+    frequency: 2.5,
+    delayTime: 3.5,
+    depth: 0.7,
+    wet: 0.4,
+  }).toDestination();
   const reverb = new T.Reverb({ decay: 2.5, wet: 0.3 }).connect(chorus);
   const inst = new T.DuoSynth({
     vibratoAmount: 0.3,
@@ -301,7 +322,12 @@ function playArpeggio(
   values.forEach((val, i) => {
     const delay = i * (noteDuration + gapBetween);
     try {
-      inst.triggerAttackRelease(valueToNote(val, m), noteDuration, now + delay, velocity);
+      inst.triggerAttackRelease(
+        valueToNote(val, m),
+        noteDuration,
+        now + delay,
+        velocity,
+      );
     } catch {
       // Transient audio scheduling error
     }
@@ -320,13 +346,18 @@ type StepData = {
   insertingValue?: number;
 };
 
-function getValuesForArpeggio(data: StepData | undefined, stepId: string): number[] {
+function getValuesForArpeggio(
+  data: StepData | undefined,
+  stepId: string,
+): number[] {
   if (!data) return [];
   // Library sort init: use input (unsorted)
   if (stepId === 'init' && data.input?.length) return data.input;
   // Library sort done: sorted order = non-null elements of array in order
   if (stepId === 'done' && data.array?.length) {
-    const compact = data.array.filter((x): x is number => typeof x === 'number');
+    const compact = data.array.filter(
+      (x): x is number => typeof x === 'number',
+    );
     if (compact.length > 0) return compact;
   }
   // Bubble/merge: array is the current state (number[])
@@ -376,7 +407,11 @@ export function playStep(
   const note = (v: number) => valueToNote(v, dataMax);
 
   // init — arpeggio of the unsorted input
-  if (step.id === 'init' || step.id === 'init_input' || step.id === 'sort_init') {
+  if (
+    step.id === 'init' ||
+    step.id === 'init_input' ||
+    step.id === 'sort_init'
+  ) {
     const values = getValuesForArpeggio(data, 'init');
     const m = values.length > 0 ? Math.max(...values) : dataMax;
     if (values.length > 0) playArpeggio(values, 0.065, 0.018, preset, 0.6, m);
@@ -477,14 +512,21 @@ export function playStep(
   }
 
   // BST search — compare target with current node
-  const searchTargetVal = (data as { searchTarget?: number | null })?.searchTarget;
+  const searchTargetVal = (data as { searchTarget?: number | null })
+    ?.searchTarget;
   if (
     step.id === 'search_compare' &&
     typeof searchTargetVal === 'number' &&
     typeof vars['current'] === 'number'
   ) {
     playNote(note(searchTargetVal), dur, preset, 0, 0.72);
-    playNote(note(vars['current'] as number), dur * 0.65, preset, dur * 0.12, 0.52);
+    playNote(
+      note(vars['current'] as number),
+      dur * 0.65,
+      preset,
+      dur * 0.12,
+      0.52,
+    );
     return;
   }
   if (
@@ -517,7 +559,16 @@ export function playStep(
   }
 
   // BST traversal and placement steps
-  if (['go_left', 'go_right', 'place_left', 'place_right', 'place', 'start_insert'].includes(step.id)) {
+  if (
+    [
+      'go_left',
+      'go_right',
+      'place_left',
+      'place_right',
+      'place',
+      'start_insert',
+    ].includes(step.id)
+  ) {
     const v = data?.insertingValue;
     if (typeof v === 'number') {
       playNote(note(v), dur, preset, 0, 0.65);
@@ -586,6 +637,10 @@ export function playStep(
       'rebalance',
       'build_complete',
       'sort_complete',
+      'sort_enter',
+      'sort_base',
+      'recurse',
+      'partition_done',
     ].includes(step.id)
   )
     return;
