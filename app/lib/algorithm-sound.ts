@@ -376,7 +376,7 @@ export function playStep(
   const note = (v: number) => valueToNote(v, dataMax);
 
   // init — arpeggio of the unsorted input
-  if (step.id === 'init' || step.id === 'init_input') {
+  if (step.id === 'init' || step.id === 'init_input' || step.id === 'sort_init') {
     const values = getValuesForArpeggio(data, 'init');
     const m = values.length > 0 ? Math.max(...values) : dataMax;
     if (values.length > 0) playArpeggio(values, 0.065, 0.018, preset, 0.6, m);
@@ -430,7 +430,81 @@ export function playStep(
     return;
   }
 
-  // BST compare — play inserting value against the node value being compared
+  // Insertion sort (standalone page)
+  if (step.id === 'insert_pass' && typeof vars['key'] === 'number') {
+    playNote(note(vars['key'] as number), dur, preset, 0, 0.64);
+    const pa = vars['placedAt'];
+    if (typeof pa === 'number' && arr[pa] != null) {
+      playNote(note(arr[pa] as number), dur * 0.72, preset, dur * 0.1, 0.52);
+    }
+    return;
+  }
+
+  // Binary search application: insertion-sort phase (embedded)
+  if (step.id === 'sort_step' && typeof vars['key'] === 'number') {
+    playNote(note(vars['key'] as number), dur, preset, 0, 0.64);
+    const pa = vars['placedAt'];
+    if (typeof pa === 'number' && arr[pa] != null) {
+      playNote(note(arr[pa] as number), dur * 0.72, preset, dur * 0.1, 0.52);
+    }
+    return;
+  }
+  if (step.id === 'search_intro' && typeof vars['target'] === 'number') {
+    playNote(note(vars['target'] as number), dur * 1.05, preset, 0, 0.62);
+    return;
+  }
+
+  // Binary search — compare arr[mid] to target
+  const midVal = vars['midVal'];
+  const targetVal = vars['target'];
+  if (
+    step.id === 'compare' &&
+    typeof midVal === 'number' &&
+    typeof targetVal === 'number'
+  ) {
+    playNote(note(targetVal), dur, preset, 0, 0.68);
+    playNote(note(midVal), dur * 0.62, preset, dur * 0.1, 0.52);
+    return;
+  }
+
+  if (['go_left', 'go_right'].includes(step.id)) {
+    const t = vars['target'];
+    const m = vars['midVal'];
+    if (typeof t === 'number' && typeof m === 'number') {
+      playNote(note(t), dur * 0.85, preset, 0, 0.5);
+      return;
+    }
+  }
+
+  // BST search — compare target with current node
+  const searchTargetVal = (data as { searchTarget?: number | null })?.searchTarget;
+  if (
+    step.id === 'search_compare' &&
+    typeof searchTargetVal === 'number' &&
+    typeof vars['current'] === 'number'
+  ) {
+    playNote(note(searchTargetVal), dur, preset, 0, 0.72);
+    playNote(note(vars['current'] as number), dur * 0.65, preset, dur * 0.12, 0.52);
+    return;
+  }
+  if (
+    ['search_go_left', 'search_go_right', 'search_start'].includes(step.id) &&
+    typeof searchTargetVal === 'number'
+  ) {
+    playNote(note(searchTargetVal), dur * 0.85, preset, 0, 0.55);
+    return;
+  }
+  if (step.id === 'search_found' && typeof searchTargetVal === 'number') {
+    playNote(note(searchTargetVal), dur * 1.1, preset, 0, 0.78);
+    return;
+  }
+  if (step.id === 'search_not_found' && typeof searchTargetVal === 'number') {
+    playNote(note(searchTargetVal), dur * 0.5, preset, 0, 0.42);
+    playNote(valueToNote(1, dataMax), dur * 0.55, preset, dur * 0.12, 0.32);
+    return;
+  }
+
+  // BST insert compare — play inserting value against the node value being compared
   const bstNodeVal = vars['current'];
   if (
     step.id === 'compare' &&
@@ -503,9 +577,16 @@ export function playStep(
 
   // structural steps with no audible value
   if (
-    ['pass_start', 'merge_done', 'outer', 'round_start', 'rebalance_start', 'rebalance'].includes(
-      step.id,
-    )
+    [
+      'pass_start',
+      'merge_done',
+      'outer',
+      'round_start',
+      'rebalance_start',
+      'rebalance',
+      'build_complete',
+      'sort_complete',
+    ].includes(step.id)
   )
     return;
 

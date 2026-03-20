@@ -2,7 +2,7 @@
  * Single source of truth for live algorithm implementations.
  *
  * To add an algorithm:
- * 1. Add metadata to ALGORITHMS in lib/data/algorithms.ts (slug, name, description, complexity, status: 'live').
+ * 1. Add metadata to ALGORITHMS in lib/data/algorithms.ts (slug, …, optional cardKind: 'application' for techniques).
  * 2. Add algorithms/<slug>/algorithm.ts (generator yielding AlgorithmStep) and algorithms/<slug>/code.ts (code string).
  * 3. Add one entry below in IMPLEMENTATIONS (code, filename, createGenerator, optional Visualization + defaultVizData).
  * No new page or layout files needed — the dynamic route and AlgorithmPageContent handle the rest.
@@ -19,12 +19,24 @@ import { BUBBLE_SORT_CODE } from '@/algorithms/bubble-sort/code';
 import { mergeSortGenerator } from '@/algorithms/merge-sort/algorithm';
 import { MERGE_SORT_CODE } from '@/algorithms/merge-sort/code';
 import { BarArrayViz } from '@/components/visualization/BarArrayViz';
-import { bstInsertGenerator } from '@/algorithms/binary-search-tree/algorithm';
+import {
+  bstInsertGenerator,
+  BST_DEFAULT_INPUT,
+} from '@/algorithms/binary-search-tree/algorithm';
 import { BST_CODE } from '@/algorithms/binary-search-tree/code';
 import { BSTViz } from '@/components/visualization/BSTViz';
 import { beadSortGenerator } from '@/algorithms/bead-sort/algorithm';
 import { BEAD_SORT_CODE } from '@/algorithms/bead-sort/code';
 import { BeadSortViz } from '@/components/visualization/BeadSortViz';
+import { insertionSortGenerator } from '@/algorithms/insertion-sort/algorithm';
+import { INSERTION_SORT_CODE } from '@/algorithms/insertion-sort/code';
+import {
+  binarySearchGenerator,
+  BINARY_SEARCH_UNSORTED,
+  BINARY_SEARCH_TARGET,
+} from '@/algorithms/binary-search/algorithm';
+import { BINARY_SEARCH_CODE } from '@/algorithms/binary-search/code';
+import { BinarySearchViz } from '@/components/visualization/BinarySearchViz';
 
 export interface AlgorithmConfig extends Algorithm {
   code: string;
@@ -39,6 +51,8 @@ const createBubbleSortGenerator = () => bubbleSortGenerator();
 const createMergeSortGenerator = () => mergeSortGenerator();
 const createBSTGenerator = () => bstInsertGenerator();
 const createBeadSortGenerator = () => beadSortGenerator();
+const createInsertionSortGenerator = () => insertionSortGenerator();
+const createBinarySearchGenerator = () => binarySearchGenerator();
 
 const IMPLEMENTATIONS: Record<
   string,
@@ -55,6 +69,13 @@ const IMPLEMENTATIONS: Record<
     code: BUBBLE_SORT_CODE,
     filename: 'bubbleSort.ts',
     createGenerator: createBubbleSortGenerator,
+    Visualization: BarArrayViz as ComponentType<{ data: unknown }>,
+    defaultVizData: { array: [] },
+  },
+  'insertion-sort': {
+    code: INSERTION_SORT_CODE,
+    filename: 'insertionSort.ts',
+    createGenerator: createInsertionSortGenerator,
     Visualization: BarArrayViz as ComponentType<{ data: unknown }>,
     defaultVizData: { array: [] },
   },
@@ -81,12 +102,39 @@ const IMPLEMENTATIONS: Record<
     Visualization: BarArrayViz as ComponentType<{ data: unknown }>,
     defaultVizData: { array: [] },
   },
+  'binary-search': {
+    code: BINARY_SEARCH_CODE,
+    filename: 'binarySearch.ts',
+    createGenerator: createBinarySearchGenerator,
+    Visualization: BinarySearchViz as ComponentType<{ data: unknown }>,
+    defaultVizData: {
+      array: [...BINARY_SEARCH_UNSORTED],
+      target: BINARY_SEARCH_TARGET,
+      range: null,
+      phase: 'sort',
+      highlightIndices: [],
+    },
+  },
   'binary-search-tree': {
     code: BST_CODE,
     filename: 'binarySearchTree.ts',
     createGenerator: createBSTGenerator,
     Visualization: BSTViz as ComponentType<{ data: unknown }>,
-    defaultVizData: { nodes: {}, root: null, highlightId: null, pathIds: [], insertingValue: null, newNodeId: null, array: [] },
+    defaultVizData: {
+      nodes: {},
+      root: null,
+      highlightId: null,
+      pathIds: [],
+      insertingValue: null,
+      newNodeId: null,
+      inputSequence: [...BST_DEFAULT_INPUT],
+      completedInputCount: 0,
+      phase: 'insert',
+      searchTarget: null,
+      searchResultNodeId: null,
+      searchMissNodeId: null,
+      array: [],
+    },
   },
 };
 

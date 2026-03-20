@@ -7,6 +7,8 @@ export interface BSTNode {
   right: number | null;
 }
 
+export type BSTPhase = 'insert' | 'search';
+
 export interface BSTData {
   nodes: Record<number, BSTNode>;
   root: number | null;
@@ -14,6 +16,23 @@ export interface BSTData {
   pathIds: number[];
   insertingValue: number | null;
   newNodeId: number | null;
+  /**
+   * Values to insert, in order — shown in the viz so you always see the raw input.
+   */
+  inputSequence: number[];
+  /**
+   * How many values from the start of `inputSequence` are already in the tree.
+   * While inserting `inputSequence[completedInputCount]`, that index is "active".
+   */
+  completedInputCount: number;
+  /** After construction: lookup phase uses the same viz with different highlights. */
+  phase: BSTPhase;
+  /** Value currently being searched for (search phase only). */
+  searchTarget: number | null;
+  /** Node id where the target was found (search phase). */
+  searchResultNodeId: number | null;
+  /** Last node compared when the target is not in the tree. */
+  searchMissNodeId: number | null;
   /**
    * Sorted values of all nodes currently in the tree — consumed by the audio
    * engine for pitch-range normalisation (maps to data.array in StepData).
@@ -23,6 +42,13 @@ export interface BSTData {
 
 // Matches the image: 8 at root, perfectly balanced 4-level BST.
 export const BST_DEFAULT_INPUT = [8, 4, 12, 2, 6, 10, 14, 1, 3, 5, 7, 9, 11, 13, 15];
+
+/** Keys used in the lookup demo after the tree is built (exported for the viz roadmap). */
+export const BST_SEARCH_DEMO_TARGETS: readonly number[] = [7, 20];
+
+type SnapSearchFields = Partial<
+  Pick<BSTData, 'phase' | 'searchTarget' | 'searchResultNodeId' | 'searchMissNodeId'>
+>;
 
 function createStep(
   id: string,
@@ -53,6 +79,8 @@ export function* bstInsertGenerator(
     pathIds: number[] = [],
     insertingValue: number | null = null,
     newNodeId: number | null = null,
+    completedInputCount = 0,
+    search: SnapSearchFields = {},
   ): BSTData => ({
     nodes: cloneNodes(nodes),
     root,
@@ -60,6 +88,12 @@ export function* bstInsertGenerator(
     pathIds: [...pathIds],
     insertingValue,
     newNodeId,
+    inputSequence: [...input],
+    completedInputCount,
+    phase: search.phase ?? 'insert',
+    searchTarget: search.searchTarget ?? null,
+    searchResultNodeId: search.searchResultNodeId ?? null,
+    searchMissNodeId: search.searchMissNodeId ?? null,
     array: Object.values(nodes)
       .map((n) => n.value)
       .sort((a, b) => a - b),
@@ -67,15 +101,16 @@ export function* bstInsertGenerator(
 
   yield createStep(
     'init',
-    snap(),
+    snap(null, [], null, null, 0),
     `Insert ${input.length} values into a Binary Search Tree`,
     { start: 1, end: 3 },
   );
 
-  for (const val of input) {
+  for (let inputIndex = 0; inputIndex < input.length; inputIndex++) {
+    const val = input[inputIndex]!;
     yield createStep(
       'start_insert',
-      snap(null, [], val),
+      snap(null, [], val, null, inputIndex),
       `Insert ${val}: create new node, begin at root`,
       { start: 2, end: 5 },
       { variables: { inserting: val } },
@@ -88,7 +123,7 @@ export function* bstInsertGenerator(
       root = id;
       yield createStep(
         'place',
-        snap(id, [], val, id),
+        snap(id, [], val, id, inputIndex),
         `Tree is empty — ${val} becomes the root`,
         { start: 3, end: 3 },
         { variables: { inserting: val, placed: 'root' } },
@@ -104,7 +139,7 @@ export function* bstInsertGenerator(
 
       yield createStep(
         'compare',
-        snap(curr, path, val),
+        snap(curr, path, val, null, inputIndex),
         `Compare ${val} with node ${node.value}`,
         { start: 7, end: 7 },
         { variables: { inserting: val, current: node.value } },
@@ -117,7 +152,7 @@ export function* bstInsertGenerator(
           nodes[curr]!.left = id;
           yield createStep(
             'place_left',
-            snap(id, [...path, curr], val, id),
+            snap(id, [...path, curr], val, id, inputIndex),
             `${val} < ${node.value}: left is empty — insert ${val} here`,
             { start: 8, end: 10 },
             { variables: { inserting: val, parent: node.value } },
@@ -127,7 +162,7 @@ export function* bstInsertGenerator(
         // Go left
         yield createStep(
           'go_left',
-          snap(curr, path, val),
+          snap(curr, path, val, null, inputIndex),
           `${val} < ${node.value}: go left`,
           { start: 12, end: 12 },
           { variables: { inserting: val, current: node.value } },
@@ -141,7 +176,7 @@ export function* bstInsertGenerator(
           nodes[curr]!.right = id;
           yield createStep(
             'place_right',
-            snap(id, [...path, curr], val, id),
+            snap(id, [...path, curr], val, id, inputIndex),
             `${val} > ${node.value}: right is empty — insert ${val} here`,
             { start: 14, end: 16 },
             { variables: { inserting: val, parent: node.value } },
@@ -151,7 +186,7 @@ export function* bstInsertGenerator(
         // Go right
         yield createStep(
           'go_right',
-          snap(curr, path, val),
+          snap(curr, path, val, null, inputIndex),
           `${val} > ${node.value}: go right`,
           { start: 18, end: 18 },
           { variables: { inserting: val, current: node.value } },
@@ -165,9 +200,139 @@ export function* bstInsertGenerator(
   }
 
   yield createStep(
+    'build_complete',
+    snap(null, [], null, null, input.length),
+    'Tree is built. Same comparisons power fast lookup — walk from the root each time.',
+    { start: 26, end: 26 },
+  );
+
+  // ── Search phase: demonstrate O(h) lookup ─────────────────────────────
+  for (let t = 0; t < BST_SEARCH_DEMO_TARGETS.length; t++) {
+    const target = BST_SEARCH_DEMO_TARGETS[t]!;
+
+    yield createStep(
+      'search_start',
+      snap(null, [], null, null, input.length, {
+        phase: 'search',
+        searchTarget: target,
+        searchResultNodeId: null,
+        searchMissNodeId: null,
+      }),
+      `Search for ${target}: start at root, compare until we find it or hit a missing child`,
+      { start: 28, end: 30 },
+      { variables: { target } },
+    );
+
+    if (root === null) break;
+
+    let curr = root;
+    const path: number[] = [];
+
+    while (true) {
+      const node = nodes[curr]!;
+
+      yield createStep(
+        'search_compare',
+        snap(curr, path, null, null, input.length, {
+          phase: 'search',
+          searchTarget: target,
+          searchResultNodeId: null,
+          searchMissNodeId: null,
+        }),
+        `Compare target ${target} with node ${node.value}`,
+        { start: 30, end: 32 },
+        { variables: { target, current: node.value } },
+      );
+
+      if (target === node.value) {
+        yield createStep(
+          'search_found',
+          snap(curr, path, null, null, input.length, {
+            phase: 'search',
+            searchTarget: target,
+            searchResultNodeId: curr,
+            searchMissNodeId: null,
+          }),
+          `Found ${target} — each step went left or right using the BST rule`,
+          { start: 31, end: 31 },
+          { variables: { target, found: node.value } },
+        );
+        break;
+      }
+
+      if (target < node.value) {
+        if (node.left === null) {
+          yield createStep(
+            'search_not_found',
+            snap(curr, path, null, null, input.length, {
+              phase: 'search',
+              searchTarget: target,
+              searchResultNodeId: null,
+              searchMissNodeId: curr,
+            }),
+            `${target} < ${node.value} but there is no left child — ${target} is not in the tree`,
+            { start: 32, end: 33 },
+            { variables: { target, stoppedAt: node.value } },
+          );
+          break;
+        }
+        yield createStep(
+          'search_go_left',
+          snap(curr, path, null, null, input.length, {
+            phase: 'search',
+            searchTarget: target,
+            searchResultNodeId: null,
+            searchMissNodeId: null,
+          }),
+          `${target} < ${node.value}: go left`,
+          { start: 32, end: 33 },
+          { variables: { target, current: node.value } },
+        );
+        path.push(curr);
+        curr = node.left;
+      } else {
+        if (node.right === null) {
+          yield createStep(
+            'search_not_found',
+            snap(curr, path, null, null, input.length, {
+              phase: 'search',
+              searchTarget: target,
+              searchResultNodeId: null,
+              searchMissNodeId: curr,
+            }),
+            `${target} > ${node.value} but there is no right child — ${target} is not in the tree`,
+            { start: 34, end: 35 },
+            { variables: { target, stoppedAt: node.value } },
+          );
+          break;
+        }
+        yield createStep(
+          'search_go_right',
+          snap(curr, path, null, null, input.length, {
+            phase: 'search',
+            searchTarget: target,
+            searchResultNodeId: null,
+            searchMissNodeId: null,
+          }),
+          `${target} > ${node.value}: go right`,
+          { start: 34, end: 35 },
+          { variables: { target, current: node.value } },
+        );
+        path.push(curr);
+        curr = node.right;
+      }
+    }
+  }
+
+  yield createStep(
     'done',
-    snap(),
-    'BST construction complete! ✓',
-    { start: 23, end: 23 },
+    snap(null, [], null, null, input.length, {
+      phase: 'search',
+      searchTarget: null,
+      searchResultNodeId: null,
+      searchMissNodeId: null,
+    }),
+    'Insert + search complete — the tree is a map from keys to nodes for O(h) lookup ✓',
+    { start: 38, end: 39 },
   );
 }

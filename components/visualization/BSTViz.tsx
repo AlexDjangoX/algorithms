@@ -1,7 +1,11 @@
 "use client";
 
 import { useMemo } from "react";
-import type { BSTData, BSTNode } from "@/algorithms/binary-search-tree/algorithm";
+import {
+  type BSTData,
+  type BSTNode,
+  BST_SEARCH_DEMO_TARGETS,
+} from "@/algorithms/binary-search-tree/algorithm";
 
 const VIZ_HEIGHT = 432;
 const NODE_R = 21;
@@ -39,8 +43,142 @@ function treeDepth(nodeId: number | null, nodes: Record<number, BSTNode>): numbe
   return 1 + Math.max(treeDepth(n.left, nodes), treeDepth(n.right, nodes));
 }
 
+/** Always visible so users know the page has a second phase (easy to miss at the end of the timeline). */
+function BstDemoRoadmap({ phase }: { phase: "insert" | "search" }) {
+  const insertActive = phase === "insert";
+  const searchActive = phase === "search";
+  const badge = (active: boolean, label: string) => (
+    <span
+      className={
+        active
+          ? "inline-flex rounded-md border border-primary bg-primary/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-primary"
+          : "inline-flex rounded-md border border-transparent bg-secondary/80 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-muted-foreground"
+      }
+    >
+      {label}
+    </span>
+  );
+  return (
+    <div className="flex flex-col gap-2 border-b border-border bg-muted/25 px-3 py-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+      <p className="max-w-xl text-[11px] leading-snug text-muted-foreground">
+        <span className="font-semibold text-foreground">Two-part demo:</span> insert keys from the strip
+        below, then the timeline continues with{" "}
+        <span className="font-semibold text-foreground">lookup</span> for{" "}
+        <span className="whitespace-nowrap font-mono text-xs font-bold text-foreground">
+          {BST_SEARCH_DEMO_TARGETS.join(" → ")}
+        </span>{" "}
+        (in tree vs not).
+      </p>
+      <div className="flex shrink-0 items-center gap-2">
+        {badge(insertActive, "1 · Build")}
+        <span className="text-muted-foreground" aria-hidden>
+          →
+        </span>
+        {badge(searchActive, "2 · Lookup")}
+      </div>
+    </div>
+  );
+}
+
+function InputSequenceStrip({
+  values,
+  completedCount,
+  insertingValue,
+}: {
+  values: number[];
+  completedCount: number;
+  insertingValue: number | null;
+}) {
+  if (values.length === 0) return null;
+  return (
+    <div className="shrink-0 border-b border-border bg-background/40 px-3 py-2.5">
+      <p className="mb-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+        Input · insertion order
+      </p>
+      <div className="flex max-h-24 flex-wrap content-start gap-1.5 overflow-y-auto">
+        {values.map((v, idx) => {
+          const inTree = idx < completedCount;
+          const active = idx === completedCount && insertingValue !== null;
+          return (
+            <span
+              key={idx}
+              className={[
+                "inline-flex min-w-8 items-center justify-center rounded-md border px-2 py-1 font-mono text-xs font-semibold tabular-nums transition-colors",
+                inTree
+                  ? "border-emerald-500/35 bg-emerald-500/10 text-emerald-800 dark:text-emerald-200"
+                  : active
+                    ? "border-primary bg-primary text-primary-foreground ring-2 ring-primary/30"
+                    : "border-border bg-secondary/60 text-muted-foreground",
+              ].join(" ")}
+              title={
+                inTree
+                  ? "Already in the tree"
+                  : active
+                    ? "Inserting now"
+                    : "Not inserted yet"
+              }
+            >
+              {v}
+            </span>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function SearchPhaseBanner({
+  target,
+  resultNodeId,
+  missNodeId,
+}: {
+  target: number | null;
+  resultNodeId: number | null;
+  missNodeId: number | null;
+}) {
+  if (target === null) return null;
+  const found = resultNodeId !== null;
+  const missed = missNodeId !== null;
+  return (
+    <div className="flex shrink-0 flex-wrap items-center gap-2 border-b border-border bg-primary/5 px-3 py-2">
+      <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+        Search
+      </span>
+      <span className="rounded-md border border-primary/40 bg-primary/10 px-2 py-0.5 font-mono text-sm font-bold tabular-nums text-primary">
+        {target}
+      </span>
+      {found && (
+        <span className="text-xs font-medium text-amber-600 dark:text-amber-400">
+          Found in tree
+        </span>
+      )}
+      {missed && (
+        <span className="text-xs font-medium text-orange-600 dark:text-orange-400">
+          Not in tree
+        </span>
+      )}
+      {!found && !missed && (
+        <span className="text-xs text-muted-foreground">Walking from the root…</span>
+      )}
+    </div>
+  );
+}
+
 export function BSTViz({ data }: { data: BSTData }) {
-  const { nodes, root, highlightId, pathIds, newNodeId } = data;
+  const {
+    nodes,
+    root,
+    highlightId,
+    pathIds,
+    newNodeId,
+    inputSequence = [],
+    completedInputCount = 0,
+    insertingValue,
+    phase = "insert",
+    searchTarget = null,
+    searchResultNodeId = null,
+    searchMissNodeId = null,
+  } = data;
   const nodeCount = Object.keys(nodes).length;
 
   const { positions, viewW, viewH } = useMemo(() => {
@@ -65,10 +203,25 @@ export function BSTViz({ data }: { data: BSTData }) {
   if (nodeCount === 0 || root === null) {
     return (
       <div
-        className="flex items-center justify-center rounded-2xl border border-border bg-secondary/80 text-muted-foreground text-sm"
-        style={{ height: VIZ_HEIGHT + 48 }}
+        className="flex flex-col overflow-hidden rounded-2xl border border-border bg-secondary/80"
+        style={{ height: VIZ_HEIGHT + 72 }}
       >
-        Press ▶ to start building the tree
+        <BstDemoRoadmap phase={phase} />
+        <InputSequenceStrip
+          values={inputSequence}
+          completedCount={completedInputCount}
+          insertingValue={insertingValue}
+        />
+        {phase === "search" && (
+          <SearchPhaseBanner
+            target={searchTarget}
+            resultNodeId={searchResultNodeId}
+            missNodeId={searchMissNodeId}
+          />
+        )}
+        <div className="flex flex-1 items-center justify-center px-4 text-center text-sm text-muted-foreground">
+          Press ▶ to start building the tree
+        </div>
       </div>
     );
   }
@@ -92,16 +245,30 @@ export function BSTViz({ data }: { data: BSTData }) {
 
   return (
     <div
-      className="relative overflow-auto rounded-2xl border border-border bg-secondary/80"
-      style={{ height: VIZ_HEIGHT + 48 }}
+      className="relative flex flex-col overflow-hidden rounded-2xl border border-border bg-secondary/80"
+      style={{ height: VIZ_HEIGHT + 72 }}
     >
-      <svg
-        width="100%"
-        height="100%"
-        viewBox={`0 0 ${viewW} ${viewH}`}
-        preserveAspectRatio="xMidYMid meet"
-        style={{ display: "block", minHeight: "100%" }}
-      >
+      <BstDemoRoadmap phase={phase} />
+      <InputSequenceStrip
+        values={inputSequence}
+        completedCount={completedInputCount}
+        insertingValue={insertingValue}
+      />
+      {phase === "search" && (
+        <SearchPhaseBanner
+          target={searchTarget}
+          resultNodeId={searchResultNodeId}
+          missNodeId={searchMissNodeId}
+        />
+      )}
+      <div className="min-h-0 flex-1 overflow-auto">
+        <svg
+          width={viewW}
+          height={viewH}
+          viewBox={`0 0 ${viewW} ${viewH}`}
+          preserveAspectRatio="xMidYMid meet"
+          className="mx-auto block max-w-full"
+        >
         {/* Edges */}
         {edges.map((e, i) => (
           <line
@@ -110,8 +277,10 @@ export function BSTViz({ data }: { data: BSTData }) {
             y1={e.from.y}
             x2={e.to.x}
             y2={e.to.y}
-            stroke="var(--border)"
-            strokeWidth={2.5}
+            stroke="hsl(var(--muted-foreground))"
+            strokeOpacity={0.85}
+            strokeWidth={3.5}
+            strokeLinecap="round"
           />
         ))}
 
@@ -123,6 +292,8 @@ export function BSTViz({ data }: { data: BSTData }) {
           const isNew = node.id === newNodeId;
           const isHighlight = node.id === highlightId;
           const isPath = pathSet.has(node.id);
+          const isSearchFound = searchResultNodeId === node.id;
+          const isSearchMiss = searchMissNodeId === node.id;
 
           // Colour logic — only one state applies at a time
           let fill: string;
@@ -131,7 +302,17 @@ export function BSTViz({ data }: { data: BSTData }) {
           let strokeOpacity = 1;
           let textFill: string;
 
-          if (isNew) {
+          if (isSearchFound) {
+            fill = "#f59e0b";
+            stroke = "#d97706";
+            textFill = "#ffffff";
+          } else if (isSearchMiss) {
+            fill = "#ea580c";
+            stroke = "#c2410c";
+            fillOpacity = 0.35;
+            strokeOpacity = 0.95;
+            textFill = "var(--foreground)";
+          } else if (isNew) {
             // Just inserted: bright green
             fill = "#22c55e";
             stroke = "#16a34a";
@@ -184,7 +365,8 @@ export function BSTViz({ data }: { data: BSTData }) {
             </g>
           );
         })}
-      </svg>
+        </svg>
+      </div>
     </div>
   );
 }

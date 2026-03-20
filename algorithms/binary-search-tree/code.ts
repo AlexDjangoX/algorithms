@@ -1,5 +1,5 @@
 /**
- * Binary Search Tree insertion — display code for the code viewer.
+ * Binary Search Tree — build with insert, then look up with search.
  */
 export const BST_CODE = `function insert(root: TreeNode | null, value: number): TreeNode {
   const newNode = new TreeNode(value);
@@ -23,4 +23,17 @@ export const BST_CODE = `function insert(root: TreeNode | null, value: number): 
       return root; // duplicate — skip
     }
   }
+}
+
+function search(root: TreeNode | null, target: number): TreeNode | null {
+  let current = root;
+  while (current !== null) {
+    if (target === current.value) return current;
+    if (target < current.value) {
+      current = current.left;
+    } else {
+      current = current.right;
+    }
+  }
+  return null;
 }`;

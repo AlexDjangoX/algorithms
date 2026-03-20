@@ -1,5 +1,8 @@
 export type AlgorithmStatus = 'live' | 'coming-soon';
 
+/** Home grid: classic single-algorithm cards vs. composite “application” cards. */
+export type AlgorithmCardKind = 'algorithm' | 'application';
+
 export interface Algorithm {
   slug: string;
   name: string;
@@ -7,6 +10,8 @@ export interface Algorithm {
   description: string;
   complexity: { time: string; space: string };
   status: AlgorithmStatus;
+  /** When `application`, the home card uses a distinct layout (technique, not one named algorithm). */
+  cardKind?: AlgorithmCardKind;
 }
 
 export const ALGORITHMS: Algorithm[] = [
@@ -25,6 +30,15 @@ export const ALGORITHMS: Algorithm[] = [
     category: 'Sorting',
     description:
       'Repeatedly swaps adjacent elements until the array is sorted.',
+    complexity: { time: 'O(n²)', space: 'O(1)' },
+    status: 'live',
+  },
+  {
+    slug: 'insertion-sort',
+    name: 'Insertion Sort',
+    category: 'Sorting',
+    description:
+      'Grows a sorted prefix from the left; each new element is shifted into place.',
     complexity: { time: 'O(n²)', space: 'O(1)' },
     status: 'live',
   },
@@ -51,8 +65,8 @@ export const ALGORITHMS: Algorithm[] = [
     name: 'Binary Search Tree',
     category: 'Trees',
     description:
-      'Inserts values one by one, traversing left when smaller and right when larger to find each insertion point.',
-    complexity: { time: 'O(h) per insert', space: 'O(n)' },
+      'Build the tree by inserting in order, then look up keys by walking from the root — same comparisons, O(h) per search when balanced.',
+    complexity: { time: 'O(h) insert & search', space: 'O(n)' },
     status: 'live',
   },
   {
@@ -67,11 +81,12 @@ export const ALGORITHMS: Algorithm[] = [
   {
     slug: 'binary-search',
     name: 'Binary Search',
-    category: 'Searching',
+    category: 'Applications',
     description:
-      'Halves the search space on each step to find a target in O(log n).',
-    complexity: { time: 'O(log n)', space: 'O(1)' },
-    status: 'coming-soon',
+      'Full trace: insertion sort the array, then binary search for a target — sort + halving search in one flow.',
+    complexity: { time: 'O(n²) sort + O(log n) search', space: 'O(1)' },
+    status: 'live',
+    cardKind: 'application',
   },
   {
     slug: 'a-star',
@@ -83,3 +98,6 @@ export const ALGORITHMS: Algorithm[] = [
     status: 'coming-soon',
   },
 ];
+
+export const ALGORITHMS_GRID = ALGORITHMS.filter((a) => a.cardKind !== 'application');
+export const APPLICATIONS_GRID = ALGORITHMS.filter((a) => a.cardKind === 'application');

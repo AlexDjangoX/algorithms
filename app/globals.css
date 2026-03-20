@@ -18,10 +18,11 @@
 .dark {
   --background: #0a0a0f;
   --foreground: #fafafa;
-  --primary: 250 84% 54%;
-  --primary-foreground: #fff;
-  --accent: 280 70% 60%;
-  --muted-foreground: 240 5% 65%;
+  /* Brighter than light-mode primary so purple UI (text-primary, rings) stays legible on dark surfaces */
+  --primary: 251 88% 72%;
+  --primary-foreground: #0f0a1a;
+  --accent: 280 75% 72%;
+  --muted-foreground: 240 5% 72%;
   --secondary: 240 6% 14%;
   --border: 240 6% 18%;
   --popover: #14141a;
