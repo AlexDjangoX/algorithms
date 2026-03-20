@@ -54,7 +54,13 @@ function BsPhaseRoadmap({ phase }: { phase: "sort" | "search" }) {
 }
 
 export function BinarySearchViz({ data }: { data: BinarySearchData }) {
-  const { array, highlightIndices = [], target, range, phase = "search" } = data;
+  const {
+    array,
+    highlightIndices = [],
+    target,
+    range,
+    phase = "search",
+  } = data;
   const n = array.length;
   const highlightSet = useMemo(
     () => new Set(highlightIndices),

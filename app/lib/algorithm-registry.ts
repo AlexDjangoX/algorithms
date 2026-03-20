@@ -25,7 +25,10 @@ import {
 } from '@/algorithms/binary-search-tree/algorithm';
 import { BST_CODE } from '@/algorithms/binary-search-tree/code';
 import { BSTViz } from '@/components/visualization/BSTViz';
-import { beadSortGenerator } from '@/algorithms/bead-sort/algorithm';
+import {
+  beadSortGenerator,
+  BEAD_SORT_DEFAULT_INPUT,
+} from '@/algorithms/bead-sort/algorithm';
 import { BEAD_SORT_CODE } from '@/algorithms/bead-sort/code';
 import { BeadSortViz } from '@/components/visualization/BeadSortViz';
 import { insertionSortGenerator } from '@/algorithms/insertion-sort/algorithm';
@@ -37,6 +40,7 @@ import {
 } from '@/algorithms/binary-search/algorithm';
 import { BINARY_SEARCH_CODE } from '@/algorithms/binary-search/code';
 import { BinarySearchViz } from '@/components/visualization/BinarySearchViz';
+import { DEFAULT_INPUT } from '@/app/lib/default-input';
 
 export interface AlgorithmConfig extends Algorithm {
   code: string;
@@ -63,21 +67,24 @@ const IMPLEMENTATIONS: Record<
     filename: 'librarySort.ts',
     createGenerator: createLibrarySortGenerator,
     Visualization: BarViz as ComponentType<{ data: unknown }>,
-    defaultVizData: { array: [], input: [] },
+    defaultVizData: {
+      array: [],
+      input: [...DEFAULT_INPUT],
+    },
   },
   'bubble-sort': {
     code: BUBBLE_SORT_CODE,
     filename: 'bubbleSort.ts',
     createGenerator: createBubbleSortGenerator,
     Visualization: BarArrayViz as ComponentType<{ data: unknown }>,
-    defaultVizData: { array: [] },
+    defaultVizData: { array: [], inputSequence: [...DEFAULT_INPUT] },
   },
   'insertion-sort': {
     code: INSERTION_SORT_CODE,
     filename: 'insertionSort.ts',
     createGenerator: createInsertionSortGenerator,
     Visualization: BarArrayViz as ComponentType<{ data: unknown }>,
-    defaultVizData: { array: [] },
+    defaultVizData: { array: [], inputSequence: [...DEFAULT_INPUT] },
   },
   'bead-sort': {
     code: BEAD_SORT_CODE,
@@ -86,7 +93,7 @@ const IMPLEMENTATIONS: Record<
     Visualization: BeadSortViz as ComponentType<{ data: unknown }>,
     defaultVizData: {
       grid: [],
-      input: [],
+      input: [...BEAD_SORT_DEFAULT_INPUT],
       phase: 'init',
       maxVal: 0,
       n: 0,
@@ -100,7 +107,7 @@ const IMPLEMENTATIONS: Record<
     filename: 'mergeSort.ts',
     createGenerator: createMergeSortGenerator,
     Visualization: BarArrayViz as ComponentType<{ data: unknown }>,
-    defaultVizData: { array: [] },
+    defaultVizData: { array: [], inputSequence: [...DEFAULT_INPUT] },
   },
   'binary-search': {
     code: BINARY_SEARCH_CODE,
@@ -109,6 +116,7 @@ const IMPLEMENTATIONS: Record<
     Visualization: BinarySearchViz as ComponentType<{ data: unknown }>,
     defaultVizData: {
       array: [...BINARY_SEARCH_UNSORTED],
+      inputSequence: [...BINARY_SEARCH_UNSORTED],
       target: BINARY_SEARCH_TARGET,
       range: null,
       phase: 'sort',

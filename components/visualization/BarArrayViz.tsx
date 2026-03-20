@@ -6,6 +6,8 @@ import { useMemo } from "react";
 export interface ArrayWithHighlightsData {
   array: number[];
   highlightIndices?: number[];
+  /** Original input order — carried on steps for the page-level input preview. */
+  inputSequence?: number[];
 }
 
 const BAR_H = 384;
@@ -30,20 +32,23 @@ export function BarArrayViz({ data }: { data: ArrayWithHighlightsData }) {
 
   if (n === 0) {
     return (
-      <div
-        className="flex items-center justify-center rounded-2xl border border-border bg-secondary/80 text-muted-foreground text-sm"
-        style={{ height: BAR_H + PAD_B * 2 }}
-      >
-        No data
+      <div className="overflow-hidden rounded-2xl border border-border bg-secondary/80">
+        <div
+          className="flex flex-1 items-center justify-center text-sm text-muted-foreground"
+          style={{ minHeight: BAR_H + PAD_B * 2 }}
+        >
+          No data
+        </div>
       </div>
     );
   }
 
   return (
-    <div
-      className="relative overflow-hidden rounded-2xl border border-border bg-secondary/80"
-      style={{ height: BAR_H + PAD_B * 2 }}
-    >
+    <div className="overflow-hidden rounded-2xl border border-border bg-secondary/80">
+      <div
+        className="relative shrink-0"
+        style={{ height: BAR_H + PAD_B * 2 }}
+      >
       <div
         style={{
           position: "absolute",
@@ -73,6 +78,7 @@ export function BarArrayViz({ data }: { data: ArrayWithHighlightsData }) {
             />
           );
         })}
+      </div>
       </div>
     </div>
   );

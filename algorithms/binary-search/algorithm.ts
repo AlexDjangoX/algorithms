@@ -44,11 +44,13 @@ export function* binarySearchGenerator(
 ): Generator<AlgorithmStep<BinarySearchData>, void, unknown> {
   const arr = [...unsorted];
   const n = arr.length;
+  const inputSequence = [...unsorted];
 
   yield createStep(
     'sort_init',
     {
       phase: 'sort',
+      inputSequence,
       array: [...arr],
       target,
       highlightIndices: [],
@@ -76,6 +78,7 @@ export function* binarySearchGenerator(
       'sort_step',
       {
         phase: 'sort',
+        inputSequence,
         array: [...arr],
         target,
         highlightIndices: highlights,
@@ -91,6 +94,7 @@ export function* binarySearchGenerator(
     'sort_complete',
     {
       phase: 'sort',
+      inputSequence,
       array: [...arr],
       target,
       highlightIndices: [],
@@ -105,6 +109,7 @@ export function* binarySearchGenerator(
     'search_intro',
     {
       phase: 'search',
+      inputSequence,
       array: [...arr],
       target,
       highlightIndices: [],
@@ -126,6 +131,7 @@ export function* binarySearchGenerator(
       'compare',
       {
         phase: 'search',
+        inputSequence,
         array: [...arr],
         target,
         highlightIndices: [lo, mid, hi],
@@ -141,6 +147,7 @@ export function* binarySearchGenerator(
         'done',
         {
           phase: 'search',
+          inputSequence,
           array: [...arr],
           target,
           highlightIndices: [mid],
@@ -159,6 +166,7 @@ export function* binarySearchGenerator(
         'go_right',
         {
           phase: 'search',
+          inputSequence,
           array: [...arr],
           target,
           highlightIndices: [lo, hi],
@@ -174,6 +182,7 @@ export function* binarySearchGenerator(
         'go_left',
         {
           phase: 'search',
+          inputSequence,
           array: [...arr],
           target,
           highlightIndices: [lo, hi],
@@ -190,6 +199,7 @@ export function* binarySearchGenerator(
     'done',
     {
       phase: 'search',
+      inputSequence,
       array: [...arr],
       target,
       highlightIndices: [],

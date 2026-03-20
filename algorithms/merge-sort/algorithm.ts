@@ -21,10 +21,11 @@ export function* mergeSortGenerator(
 ): Generator<AlgorithmStep<MergeSortData>, void, unknown> {
   const arr = [...input];
   const n = arr.length;
+  const inputSequence = [...input];
 
   yield createStep(
     'init',
-    { array: [...arr] },
+    { inputSequence, array: [...arr] },
     `Input: [${arr.join(', ')}] — ${n} elements (bottom-up merge sort)`,
     { start: 1, end: 3 },
   );
@@ -32,7 +33,7 @@ export function* mergeSortGenerator(
   for (let size = 1; size < n; size *= 2) {
     yield createStep(
       'pass_start',
-      { array: [...arr] },
+      { inputSequence, array: [...arr] },
       `Merge pass: subarrays of size ${size}`,
       { start: 4, end: 5 },
       { variables: { size } },
@@ -56,7 +57,7 @@ export function* mergeSortGenerator(
       while (i < leftLen && j < rightLen) {
         yield createStep(
           'compare',
-          { array: [...arr], highlightIndices: [k] },
+          { inputSequence, array: [...arr], highlightIndices: [k] },
           `Compare ${left[i]} and ${right[j]} — take smaller into position ${k}`,
           { start: 13, end: 15 },
           { variables: { i, j, k, left: left[i], right: right[j] } },
@@ -72,7 +73,7 @@ export function* mergeSortGenerator(
         k++;
         yield createStep(
           'merge_place',
-          { array: [...arr], highlightIndices: [k - 1] },
+          { inputSequence, array: [...arr], highlightIndices: [k - 1] },
           `Placed ${arr[k - 1]} at index ${k - 1}`,
           { start: 16, end: 22 },
           { variables: { i, j, k } },
@@ -92,7 +93,7 @@ export function* mergeSortGenerator(
 
       yield createStep(
         'merge_done',
-        { array: [...arr] },
+        { inputSequence, array: [...arr] },
         `Merged run [${leftStart}..${rightEnd}]`,
         { start: 23, end: 25 },
         { variables: { leftStart, rightEnd } },
@@ -102,7 +103,7 @@ export function* mergeSortGenerator(
 
   yield createStep(
     'done',
-    { array: [...arr] },
+    { inputSequence, array: [...arr] },
     'Sort complete! ✓',
     { start: 27, end: 27 },
   );

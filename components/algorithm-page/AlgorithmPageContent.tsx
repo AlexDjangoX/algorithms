@@ -40,12 +40,18 @@ export function AlgorithmPageContent({ slug }: AlgorithmPageContentProps) {
 
       <div className="mx-auto w-full max-w-2xl px-4 sm:px-6 pb-12 sm:pb-16 lg:max-w-7xl lg:px-8">
         <AlgorithmPlayer
+          key={slug}
           layout="split"
           createGenerator={createGenerator}
           code={code}
           filename={filename}
           Visualization={Visualization}
           defaultVizData={defaultVizData}
+          inputPreviewHeading={
+            slug === 'binary-search'
+              ? 'Unsorted starting array — phase 1 sorts these values into order; phase 2 binary-searches the result.'
+              : undefined
+          }
         >
           <div className="mb-4 text-center lg:text-left">
             <h1 className="font-display text-xl sm:text-2xl font-bold tracking-tight text-foreground">

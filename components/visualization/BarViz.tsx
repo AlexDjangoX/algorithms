@@ -137,34 +137,34 @@ export function BarViz({ data }: { data: LibrarySortData }) {
       className="relative overflow-hidden rounded-2xl border border-border bg-secondary/80"
       style={{ height: BAR_H + PAD_B * 2 }}
     >
-      <div
-        style={{
-          position: "absolute",
-          left: 0,
-          right: 0,
-          bottom: PAD_B,
-          height: BAR_H,
-        }}
-      >
-        {input.map((val) => (
-          <div
-            key={val}
-            ref={(el) => {
-              if (el) barEls.current.set(val, el);
-            }}
-            style={{
-              position: "absolute",
-              bottom: 0,
-              left: 0,
-              width: `${100 / n}%`,
-              height: Math.max((val / maxVal) * BAR_H, 6),
-              backgroundColor: barColor(val, maxVal),
-              borderRadius: "3px 3px 0 0",
-              willChange: "transform",
-            }}
-          />
-        ))}
-      </div>
+        <div
+          style={{
+            position: "absolute",
+            left: 0,
+            right: 0,
+            bottom: PAD_B,
+            height: BAR_H,
+          }}
+        >
+          {input.map((val, idx) => (
+            <div
+              key={`${val}-${idx}`}
+              ref={(el) => {
+                if (el) barEls.current.set(val, el);
+              }}
+              style={{
+                position: "absolute",
+                bottom: 0,
+                left: 0,
+                width: `${100 / n}%`,
+                height: Math.max((val / maxVal) * BAR_H, 6),
+                backgroundColor: barColor(val, maxVal),
+                borderRadius: "3px 3px 0 0",
+                willChange: "transform",
+              }}
+            />
+          ))}
+        </div>
     </div>
   );
 }

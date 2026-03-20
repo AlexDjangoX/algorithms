@@ -30,11 +30,13 @@ export function BeadSortViz({ data }: { data: BeadSortData }) {
 
   if (n === 0 || maxVal === 0) {
     return (
-      <div
-        className="flex items-center justify-center rounded-2xl border border-border bg-secondary/80 text-muted-foreground text-sm"
-        style={{ height: VIZ_H }}
-      >
-        Press ▶ to start
+      <div className="overflow-hidden rounded-2xl border border-border bg-secondary/80">
+        <div
+          className="flex flex-1 items-center justify-center text-sm text-muted-foreground"
+          style={{ minHeight: VIZ_H }}
+        >
+          Press ▶ to start
+        </div>
       </div>
     );
   }
@@ -42,22 +44,23 @@ export function BeadSortViz({ data }: { data: BeadSortData }) {
   return (
     <div
       className="relative overflow-hidden rounded-2xl border border-border bg-secondary/80"
-      style={{ height: VIZ_H }}
+      style={{ minHeight: VIZ_H }}
     >
-      {/* Active-column vertical guide during gravity */}
-      {phase === "gravity" && typeof activeCol === "number" && (
-        <ActiveColGuide
-          activeCol={activeCol}
-          maxVal={maxVal}
-          pad={PAD}
-          height={VIZ_H}
-        />
-      )}
+      <div className="relative min-h-0 h-full">
+        {/* Active-column vertical guide during gravity */}
+        {phase === "gravity" && typeof activeCol === "number" && (
+          <ActiveColGuide
+            activeCol={activeCol}
+            maxVal={maxVal}
+            pad={PAD}
+            height={VIZ_H}
+          />
+        )}
 
-      <div
-        className="flex flex-col justify-center h-full"
-        style={{ padding: `${PAD}px ${PAD + 4}px` }}
-      >
+        <div
+          className="flex h-full flex-col justify-center"
+          style={{ padding: `${PAD}px ${PAD + 4}px`, minHeight: VIZ_H - 8 }}
+        >
         <div className="flex flex-col" style={{ gap: 3 }}>
           {grid.map((row, rowIdx) => {
             const beads = row.reduce((a, b) => a + b, 0);
@@ -82,6 +85,7 @@ export function BeadSortViz({ data }: { data: BeadSortData }) {
             );
           })}
         </div>
+      </div>
       </div>
     </div>
   );

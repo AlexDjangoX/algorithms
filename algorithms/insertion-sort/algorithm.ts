@@ -19,10 +19,11 @@ export function* insertionSortGenerator(
 ): Generator<AlgorithmStep<InsertionSortData>, void, unknown> {
   const arr = [...input];
   const n = arr.length;
+  const inputSequence = [...input];
 
   yield createStep(
     'init',
-    { array: [...arr] },
+    { inputSequence, array: [...arr] },
     `Insertion sort: build a sorted prefix from left to right — ${n} elements`,
     { start: 1, end: 3 },
     { variables: { n } },
@@ -43,7 +44,7 @@ export function* insertionSortGenerator(
 
     yield createStep(
       'insert_pass',
-      { array: [...arr], highlightIndices: highlights },
+      { inputSequence, array: [...arr], highlightIndices: highlights },
       `Place ${key} at index ${from} — sorted prefix is now indices 0…${i}`,
       { start: 5, end: 9 },
       { variables: { i, key, placedAt: from } },
@@ -52,7 +53,7 @@ export function* insertionSortGenerator(
 
   yield createStep(
     'done',
-    { array: [...arr] },
+    { inputSequence, array: [...arr] },
     'Insertion sort complete — array is in non-decreasing order ✓',
     { start: 11, end: 11 },
   );

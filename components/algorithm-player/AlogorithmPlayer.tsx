@@ -13,6 +13,8 @@ import {
   type SoundPreset,
 } from '@/app/lib/algorithm-sound';
 import { BarViz } from '@/components/visualization/BarViz';
+import { AlgorithmInputPreview } from '@/components/algorithm-player/AlgorithmInputPreview';
+import { StepStatusPanel } from '@/components/algorithm-player/StepStatusPanel';
 import { CodeViewer } from '@/components/code-viewer/CodeViewer';
 import { Controls } from '@/components/controls/Controls';
 import type { LibrarySortData } from '@/algorithms/library-sort/algorithm';
@@ -28,6 +30,8 @@ interface AlgorithmPlayerProps<TData = LibrarySortData> {
   /** Custom visualization; when provided, defaultVizData is used for empty state. */
   Visualization?: React.ComponentType<{ data: TData }>;
   defaultVizData?: TData;
+  /** Shown under page heading / complexity; omit to use default copy. */
+  inputPreviewHeading?: string;
 }
 
 const DEFAULT_LIBRARY_SORT_DATA: LibrarySortData = {
@@ -43,6 +47,7 @@ export function AlgorithmPlayer<TData = LibrarySortData>({
   children,
   Visualization,
   defaultVizData,
+  inputPreviewHeading,
 }: AlgorithmPlayerProps<TData>) {
   const {
     currentStep,
@@ -141,28 +146,12 @@ export function AlgorithmPlayer<TData = LibrarySortData>({
     <BarViz data={vizData as LibrarySortData} />
   );
   const statusBlock = (
-    <div className="flex min-h-[8rem] sm:min-h-[6rem] flex-wrap items-center gap-3 rounded-xl border border-border bg-secondary/80 px-4 py-3">
-      <p className="flex-1 text-sm text-foreground min-w-0">
-        {currentStep?.description ?? 'Click ▶ Play or Step → to start'}
-      </p>
-      {vars && Object.keys(vars).length > 0 && (
-        <div className="flex flex-wrap gap-2">
-          {Object.entries(vars).map(([key, value]) => (
-            <span
-              key={key}
-              className="flex items-center gap-1 rounded-md border border-border bg-background/80 px-2 py-1"
-            >
-              <span className="font-mono text-xs text-muted-foreground">
-                {key}
-              </span>
-              <span className="font-mono text-xs font-semibold text-primary">
-                {String(value)}
-              </span>
-            </span>
-          ))}
-        </div>
-      )}
-    </div>
+    <StepStatusPanel
+      description={
+        currentStep?.description ?? 'Click ▶ Play or Step → to start'
+      }
+      variables={vars ?? undefined}
+    />
   );
   const codeViewer = (
     <CodeViewer
@@ -209,6 +198,10 @@ export function AlgorithmPlayer<TData = LibrarySortData>({
       <div className="flex flex-col gap-6 lg:gap-8">
         {/* Full-width heading above the columns on all screens; on lg this is the page heading */}
         {children}
+        <AlgorithmInputPreview
+          vizData={vizData}
+          heading={inputPreviewHeading}
+        />
         {/* Two columns on lg: left = code + controls, right = viz + status. Mobile: viz first, then code. */}
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:gap-8 lg:items-stretch">
           <div className="flex min-h-0  gap-5 order-2 lg:order-1 flex-col-reverse lg:flex-col lg:min-h-112">
