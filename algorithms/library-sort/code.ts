@@ -1,5 +1,7 @@
 /**
- * Library Sort - Display code for the code viewer
+ * Library sort — display code for the code viewer.
+ * Implementation-specific gapped-array variant (not identical to every published paper).
+ * Comments sit on their own lines so the panel does not clip long end-of-line text.
  */
 export const LIBRARY_SORT_CODE = `function librarySort(input: number[]): number[] {
   const EMPTY = Symbol('gap');

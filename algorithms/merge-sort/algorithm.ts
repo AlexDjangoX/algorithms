@@ -26,16 +26,26 @@ export function* mergeSortGenerator(
   yield createStep(
     'init',
     { inputSequence, array: [...arr] },
-    `Input: [${arr.join(', ')}] — n = ${n}; bottom-up merge on arr, run size doubles each pass`,
-    { start: 1, end: 3 },
+    [
+      `n = ${n}; arr is a copy of the input.`,
+      '',
+      `Bottom-up: size doubles 1, 2, 4, … Each pass merges adjacent sorted runs of length ≤ size (last run may be shorter).`,
+      '',
+      `Merge of two non-decreasing runs yields a non-decreasing run of length up to 2·size.`,
+    ].join('\n'),
+    { start: 1, end: 5 },
   );
 
   for (let size = 1; size < n; size *= 2) {
     yield createStep(
       'pass_start',
       { inputSequence, array: [...arr] },
-      `Merge pass: subarrays of size ${size}`,
-      { start: 4, end: 5 },
+      [
+        `Pass with size = ${size}: merge pairs of sorted runs (right run may be shorter).`,
+        '',
+        `Left run arr[leftStart..mid], right arr[mid+1..rightEnd]; mid = leftStart+size−1, rightEnd = min(leftStart+2·size−1, n−1).`,
+      ].join('\n'),
+      { start: 5, end: 5 },
       { variables: { size } },
     );
 
@@ -58,8 +68,10 @@ export function* mergeSortGenerator(
         yield createStep(
           'compare',
           { inputSequence, array: [...arr], highlightIndices: [k] },
-          `compare left[i]=${left[i]} vs right[j]=${right[j]}; write smaller to arr[${k}]`,
-          { start: 13, end: 15 },
+          [
+            `Compare left[i] = ${left[i]} vs right[j] = ${right[j]}; ties take left (stable). Next k = ${k}.`,
+          ].join('\n'),
+          { start: 17, end: 17 },
           { variables: { i, j, k, left: left[i], right: right[j] } },
         );
 
@@ -74,8 +86,10 @@ export function* mergeSortGenerator(
         yield createStep(
           'merge_place',
           { inputSequence, array: [...arr], highlightIndices: [k - 1] },
-          `Placed ${arr[k - 1]} at index ${k - 1}`,
-          { start: 16, end: 22 },
+          [
+            `arr[${k - 1}] is the next smallest; arr[leftStart..${k - 1}] is non-decreasing.`,
+          ].join('\n'),
+          { start: 17, end: 24 },
           { variables: { i, j, k } },
         );
       }
@@ -94,8 +108,10 @@ export function* mergeSortGenerator(
       yield createStep(
         'merge_done',
         { inputSequence, array: [...arr] },
-        `merged arr[${leftStart}..${rightEnd}] into one sorted segment`,
-        { start: 23, end: 25 },
+        [
+          `arr[${leftStart}..${rightEnd}] is sorted; leftovers (if any) were copied in order.`,
+        ].join('\n'),
+        { start: 27, end: 28 },
         { variables: { leftStart, rightEnd } },
       );
     }
@@ -104,7 +120,11 @@ export function* mergeSortGenerator(
   yield createStep(
     'done',
     { inputSequence, array: [...arr] },
-    'Sort complete! ✓',
-    { start: 27, end: 27 },
+    [
+      `All passes done: arr[0..n−1] is non-decreasing.`,
+      '',
+      '✓',
+    ].join('\n'),
+    { start: 31, end: 31 },
   );
 }

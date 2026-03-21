@@ -73,7 +73,6 @@ export function* bstInsertGenerator(
   const nodes: Record<number, BSTNode> = {};
   let root: number | null = null;
 
-  /** Snapshot the current tree state into a BSTData object. */
   const snap = (
     highlightId: number | null = null,
     pathIds: number[] = [],
@@ -102,8 +101,12 @@ export function* bstInsertGenerator(
   yield createStep(
     'init',
     snap(null, [], null, null, 0),
-    `keys = [${input.join(', ')}]; for each key insert into BST (val < node.value ? left : right)`,
-    { start: 1, end: 3 },
+    [
+      `Insert in order: [${input.join(', ')}].`,
+      '',
+      `BST: left < node < right (strict); duplicates skipped.`,
+    ].join('\n'),
+    { start: 1, end: 7 },
   );
 
   for (let inputIndex = 0; inputIndex < input.length; inputIndex++) {
@@ -111,12 +114,13 @@ export function* bstInsertGenerator(
     yield createStep(
       'start_insert',
       snap(null, [], val, null, inputIndex),
-      `val = ${val}; curr = root; walk while (curr) comparing val to node.value`,
-      { start: 2, end: 5 },
+      [
+        `Next key val = ${val}. Start at root; follow left if val < node.value, right if val > node.value, stop without insert if val equals an existing key.`,
+      ].join('\n'),
+      { start: 5, end: 8 },
       { variables: { inserting: val } },
     );
 
-    // Special case: tree is empty
     if (root === null) {
       const id = nextId++;
       nodes[id] = { id, value: val, left: null, right: null };
@@ -124,7 +128,9 @@ export function* bstInsertGenerator(
       yield createStep(
         'place',
         snap(id, [], val, id, inputIndex),
-        `root === null → root = new Node(${val})`,
+        [
+          `Empty tree: the single node with key ${val} is a BST.`,
+        ].join('\n'),
         { start: 3, end: 3 },
         { variables: { inserting: val, placed: 'root' } },
       );
@@ -140,8 +146,10 @@ export function* bstInsertGenerator(
       yield createStep(
         'compare',
         snap(curr, path, val, null, inputIndex),
-        `while (curr): compare val=${val} with curr.value=${node.value}`,
-        { start: 7, end: 7 },
+        [
+          `At node ${node.value}; compare with val = ${val}.`,
+        ].join('\n'),
+        { start: 8, end: 8 },
         { variables: { inserting: val, current: node.value } },
       );
 
@@ -153,18 +161,21 @@ export function* bstInsertGenerator(
           yield createStep(
             'place_left',
             snap(id, [...path, curr], val, id, inputIndex),
-            `${val} < ${node.value}: left is empty — insert ${val} here`,
-            { start: 8, end: 10 },
+            [
+              `val < ${node.value}, no left child: attach leaf.`,
+            ].join('\n'),
+            { start: 9, end: 11 },
             { variables: { inserting: val, parent: node.value } },
           );
           break;
         }
-        // Go left
         yield createStep(
           'go_left',
           snap(curr, path, val, null, inputIndex),
-          `val < node.value → curr = node.left`,
-          { start: 12, end: 12 },
+          [
+            `val < ${node.value}: continue to left child.`,
+          ].join('\n'),
+          { start: 13, end: 13 },
           { variables: { inserting: val, current: node.value } },
         );
         path.push(curr);
@@ -177,24 +188,27 @@ export function* bstInsertGenerator(
           yield createStep(
             'place_right',
             snap(id, [...path, curr], val, id, inputIndex),
-            `val > node.value && node.right === null → node.right = new Node(${val})`,
-            { start: 14, end: 16 },
+            [
+              `val > ${node.value}, no right child: attach leaf.`,
+            ].join('\n'),
+            { start: 15, end: 17 },
             { variables: { inserting: val, parent: node.value } },
           );
           break;
         }
-        // Go right
         yield createStep(
           'go_right',
           snap(curr, path, val, null, inputIndex),
-          `val > node.value → curr = node.right`,
-          { start: 18, end: 18 },
+          [
+            `val > ${node.value}: continue to right child.`,
+          ].join('\n'),
+          { start: 19, end: 19 },
           { variables: { inserting: val, current: node.value } },
         );
         path.push(curr);
         curr = node.right;
       } else {
-        break; // duplicate — skip
+        break;
       }
     }
   }
@@ -202,11 +216,12 @@ export function* bstInsertGenerator(
   yield createStep(
     'build_complete',
     snap(null, [], null, null, input.length),
-    'insert phase done; search uses same rule: target < node.value ? node.left : node.right',
-    { start: 26, end: 26 },
+    [
+      `Tree built. Search uses the same comparisons as insert.`,
+    ].join('\n'),
+    { start: 26, end: 28 },
   );
 
-  // ── Search phase: demonstrate O(h) lookup ─────────────────────────────
   for (let t = 0; t < BST_SEARCH_DEMO_TARGETS.length; t++) {
     const target = BST_SEARCH_DEMO_TARGETS[t]!;
 
@@ -218,8 +233,10 @@ export function* bstInsertGenerator(
         searchResultNodeId: null,
         searchMissNodeId: null,
       }),
-      `Search for ${target}: start at root, compare until we find it or hit a missing child`,
-      { start: 28, end: 30 },
+      [
+        `Search for target = ${target}, starting at root.`,
+      ].join('\n'),
+      { start: 26, end: 29 },
       { variables: { target } },
     );
 
@@ -239,8 +256,10 @@ export function* bstInsertGenerator(
           searchResultNodeId: null,
           searchMissNodeId: null,
         }),
-        `target === ${target} vs curr.value === ${node.value}`,
-        { start: 30, end: 32 },
+        [
+          `Compare target ${target} with node key ${node.value}.`,
+        ].join('\n'),
+        { start: 29, end: 30 },
         { variables: { target, current: node.value } },
       );
 
@@ -253,8 +272,10 @@ export function* bstInsertGenerator(
             searchResultNodeId: curr,
             searchMissNodeId: null,
           }),
-          `target === node.value /* ${target} */ → found at this node`,
-          { start: 31, end: 31 },
+          [
+            `Equality: target found at this node.`,
+          ].join('\n'),
+          { start: 30, end: 30 },
           { variables: { target, found: node.value } },
         );
         break;
@@ -270,8 +291,10 @@ export function* bstInsertGenerator(
               searchResultNodeId: null,
               searchMissNodeId: curr,
             }),
-            `${target} < ${node.value} but there is no left child — ${target} is not in the tree`,
-            { start: 32, end: 33 },
+            [
+              `Need left subtree for target < ${node.value}, but left is null — not in tree.`,
+            ].join('\n'),
+            { start: 32, end: 32 },
             { variables: { target, stoppedAt: node.value } },
           );
           break;
@@ -284,8 +307,10 @@ export function* bstInsertGenerator(
             searchResultNodeId: null,
             searchMissNodeId: null,
           }),
-          `target < node.value → curr = node.left`,
-          { start: 32, end: 33 },
+          [
+            `target < ${node.value}: go left.`,
+          ].join('\n'),
+          { start: 32, end: 32 },
           { variables: { target, current: node.value } },
         );
         path.push(curr);
@@ -300,8 +325,10 @@ export function* bstInsertGenerator(
               searchResultNodeId: null,
               searchMissNodeId: curr,
             }),
-            `target > node.value && node.right === null → not in tree`,
-            { start: 34, end: 35 },
+            [
+              `Need right subtree for target > ${node.value}, but right is null — not in tree.`,
+            ].join('\n'),
+            { start: 34, end: 34 },
             { variables: { target, stoppedAt: node.value } },
           );
           break;
@@ -314,8 +341,10 @@ export function* bstInsertGenerator(
             searchResultNodeId: null,
             searchMissNodeId: null,
           }),
-          `${target} > ${node.value}: go right`,
-          { start: 34, end: 35 },
+          [
+            `target > ${node.value}: go right.`,
+          ].join('\n'),
+          { start: 34, end: 34 },
           { variables: { target, current: node.value } },
         );
         path.push(curr);
@@ -332,7 +361,11 @@ export function* bstInsertGenerator(
       searchResultNodeId: null,
       searchMissNodeId: null,
     }),
-    'done: insert + search demo complete',
-    { start: 38, end: 39 },
+    [
+      'Demo complete.',
+      '',
+      '✓',
+    ].join('\n'),
+    { start: 37, end: 38 },
   );
 }

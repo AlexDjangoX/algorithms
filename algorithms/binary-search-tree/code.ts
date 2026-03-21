@@ -1,5 +1,6 @@
 /**
  * Binary Search Tree — build with insert, then look up with search.
+ * Comments sit on their own lines so the panel does not clip long end-of-line text.
  */
 export const BST_CODE = `function insert(root: TreeNode | null, value: number): TreeNode {
   const newNode = new TreeNode(value);
@@ -7,6 +8,7 @@ export const BST_CODE = `function insert(root: TreeNode | null, value: number): 
 
   let current = root;
   while (true) {
+    // BST property: left subtree keys < node.key < right subtree keys (strict).
     if (value < current.value) {
       if (current.left === null) {
         current.left = newNode;
@@ -20,7 +22,7 @@ export const BST_CODE = `function insert(root: TreeNode | null, value: number): 
       }
       current = current.right;
     } else {
-      return root; // duplicate — skip
+      return root; // duplicate — do not insert a second node
     }
   }
 }

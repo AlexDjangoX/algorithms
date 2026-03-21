@@ -3,19 +3,19 @@
  * Comments sit on their own lines so the panel does not clip long end-of-line text.
  */
 export const INSERTION_SORT_CODE = `function insertionSort(arr: number[]): void {
-  // Sort arr in place: smallest → largest, moving left to right.
+  // Rearrange arr in place into non-decreasing order (duplicates allowed).
   for (let i = 1; i < arr.length; i++) {
-    // arr[0] through arr[i - 1] are already sorted. We insert arr[i] next.
+    // Invariant at this line: arr[0..i-1] is sorted in non-decreasing order.
     const key = arr[i];
-    // Hold key aside; shifting may overwrite arr[i] before we write key back.
+    // key is the element to insert; later shifts may overwrite arr[i] before key is written back.
     let j = i - 1;
-    // Start comparing with the cell immediately to the left of key's old slot.
+    // Compare key against arr[j], arr[j-1], ... until arr[j] <= key or j = -1.
     while (j >= 0 && arr[j] > key) {
-      // arr[j] is larger than key — copy it one index to the right to open a gap.
+      // arr[j] belongs to the right of key in sorted order; shift it one slot right.
       arr[j + 1] = arr[j];
       j--;
     }
-    // j is -1, or arr[j] ≤ key. The gap is at j + 1; store key there.
+    // Now j = -1 or arr[j] <= key; insert key at index j+1.
     arr[j + 1] = key;
   }
 }

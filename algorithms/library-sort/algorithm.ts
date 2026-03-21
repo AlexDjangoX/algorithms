@@ -67,8 +67,12 @@ export function* librarySortGenerator(
   yield createStep(
     'init_input',
     { array: [...S], input: [...input] },
-    `Input: [${input.join(', ')}] — ${n} elements to sort`,
-    { start: 1, end: 2 },
+    [
+      `n = ${n}, ε = ${epsilon}, sLen = ⌈(1 + ε)n⌉ = ${sLen}. S[0..sLen−1] starts as nulls (gaps). Input: [${input.join(', ')}].`,
+      '',
+      `Each value is placed via binary search on a prefix of length len, with right-shifts if needed; rounds end with a rebalance that spreads gaps. Narrative matches this code only.`,
+    ].join('\n'),
+    { start: 1, end: 7 },
   );
 
   let pos = 0;
@@ -81,8 +85,10 @@ export function* librarySortGenerator(
     yield createStep(
       'round_start',
       { array: S.map((x) => x), input: [...input] },
-      `Round ${round}: inserting up to ${goal} element(s)`,
-      { start: 12, end: 13 },
+      [
+        `Round ${round}: up to goal = ${goal} inserts while pos < n. len = min(sLen, (round === 1 ? 1 : 2^(round−1))·2) = ${Math.min(sLen, (round === 1 ? 1 : Math.pow(2, round - 1)) * 2)}.`,
+      ].join('\n'),
+      { start: 13, end: 15 },
       { variables: { round, goal, pos } },
     );
 
@@ -96,8 +102,10 @@ export function* librarySortGenerator(
       yield createStep(
         'pick_value',
         { array: S.map((x) => x), input: [...input], insertingValue: val },
-        `val = input[${pos}] /* = ${val} */`,
-        { start: 13, end: 15 },
+        [
+          `Next key: val = input[${pos}] = ${val}. Search and insert use only indices [0..len−1] of S with len as computed above.`,
+        ].join('\n'),
+        { start: 17, end: 18 },
         { variables: { val, pos, round } },
       );
 
@@ -111,8 +119,10 @@ export function* librarySortGenerator(
           activeIndex: insPos,
           insertingValue: val,
         },
-        `binarySearch → insert index insPos = ${insPos}; next S[${insPos}] = ${val}`,
-        { start: 18, end: 18 },
+        [
+          `insPos = ${insPos} from findInsertPosition: binary search on non-null keys, skip forward through gaps, then walk right for a free slot (or backtrack left if full).`,
+        ].join('\n'),
+        { start: 20, end: 20 },
         { variables: { val, insPos, pos }, highlights: [insPos] },
       );
 
@@ -129,8 +139,10 @@ export function* librarySortGenerator(
               activeIndex: j,
               insertingValue: val,
             },
-            `S[${j - 1}] ↔ S[${j}] /* shift right for gap at insPos */`,
-            { start: 20, end: 25 },
+            [
+              `S[insPos] was occupied; exchange S[${j - 1}] and S[${j}] (j increases from insPos) until some index holds null.`,
+            ].join('\n'),
+            { start: 24, end: 25 },
             { variables: { val, insPos, j }, highlights: [j, j - 1] },
           );
         }
@@ -147,8 +159,10 @@ export function* librarySortGenerator(
           activeIndex: insPos,
           insertingValue: val,
         },
-        `S[${insPos}] = ${val}`,
-        { start: 28, end: 29 },
+        [
+          `Assign S[${insPos}] ← ${val}; increment pos.`,
+        ].join('\n'),
+        { start: 30, end: 31 },
         { variables: { val, insPos, pos }, highlights: [insPos] },
       );
     }
@@ -163,8 +177,10 @@ export function* librarySortGenerator(
     yield createStep(
       'rebalance_start',
       { array: S.map((x) => x), input: [...input] },
-      'rebalance: redistribute S[0..] with larger gaps between occupied cells',
-      { start: 32, end: 34 },
+      [
+        `Rebalance: prevLen = ${prevLen}, newLen = ${newLen}, step = ⌊newLen/prevLen⌋ = ${Math.floor(newLen / prevLen)}; w starts at newLen−1. For j = prevLen−1 … 0: move S[j] → S[w], clear S[w−1] if needed, w -= step.`,
+      ].join('\n'),
+      { start: 34, end: 41 },
       { variables: { prevLen, newLen, goal } },
     );
 
@@ -176,8 +192,10 @@ export function* librarySortGenerator(
       yield createStep(
         'rebalance',
         { array: S.map((x) => x), input: [...input] },
-        `Spreading elements to restore gaps (${stepNum}/${prevLen})`,
-        { start: 36, end: 40 },
+        [
+          `Inner rebalance iteration j = ${prevLen - 1 - stepNum + 1}: one step of the loop above (see variables).`,
+        ].join('\n'),
+        { start: 42, end: 45 },
         { variables: { prevLen, newLen, j, stepNum } },
       );
     }
@@ -192,7 +210,11 @@ export function* librarySortGenerator(
   yield createStep(
     'done',
     { array: S.map((x) => x), input: [...input] },
-    'Sort complete! ✓',
-    { start: 48, end: 48 },
+    [
+      'Termination: pos = n. Output is the subsequence of S in index order omitting null (filter in code).',
+      '',
+      '✓',
+    ].join('\n'),
+    { start: 51, end: 51 },
   );
 }

@@ -26,16 +26,26 @@ export function* bubbleSortGenerator(
   yield createStep(
     'init',
     { inputSequence, array: [...arr] },
-    `Input: [${arr.join(', ')}] — n = ${n}; bubble sort compares arr[j] and arr[j + 1] each pass`,
-    { start: 1, end: 2 },
+    [
+      `n = ${n}; arr is a copy of the input.`,
+      '',
+      `Inner j = 0 … n−2−i: swap adjacent pairs if arr[j] > arr[j+1]. After pass i, arr[n−1−i] is a maximum of the unsorted prefix.`,
+      '',
+      `After n−1 passes, the array is non-decreasing.`,
+    ].join('\n'),
+    { start: 1, end: 5 },
   );
 
   for (let i = 0; i < n - 1; i++) {
     yield createStep(
       'outer',
       { inputSequence, array: [...arr] },
-      `for (let i = ${i}; i < n - 1; i++) — ${n - 1 - i} more outer iterations`,
-      { start: 4, end: 4 },
+      [
+        `Pass i = ${i}: bubble in [0..${n - 2 - i}] vs next neighbor; suffix [${n - i}..${n - 1}] already settled.`,
+        '',
+        `After this pass, arr[n−1−i] is a max of the prefix.`,
+      ].join('\n'),
+      { start: 5, end: 5 },
       { variables: { i, n: n - 1 - i } },
     );
 
@@ -43,8 +53,12 @@ export function* bubbleSortGenerator(
       yield createStep(
         'compare',
         { inputSequence, array: [...arr], highlightIndices: [j, j + 1] },
-        `Compare arr[${j}] = ${arr[j]} and arr[${j + 1}] = ${arr[j + 1]}`,
-        { start: 6, end: 6 },
+        [
+          `Compare arr[${j}] and arr[${j + 1}] (swap if arr[${j}] > arr[${j + 1}]).`,
+          '',
+          `Values: ${arr[j]}, ${arr[j + 1]}.`,
+        ].join('\n'),
+        { start: 8, end: 8 },
         { variables: { i, j, 'arr[j]': arr[j], 'arr[j+1]': arr[j + 1] } },
       );
 
@@ -59,8 +73,12 @@ export function* bubbleSortGenerator(
             array: [...arr],
             highlightIndices: [j, j + 1],
           },
-          `if (arr[${j}] > arr[${j + 1}]) swap — was arr[${j}]=${before0}, arr[${j + 1}]=${before1}; now arr[${j}]=${arr[j]}, arr[${j + 1}]=${arr[j + 1]}`,
-          { start: 7, end: 7 },
+          [
+            `Swap: now ${arr[j]}, ${arr[j + 1]} (were ${before0}, ${before1}).`,
+            '',
+            `Equal keys never swap (strict >) — stable.`,
+          ].join('\n'),
+          { start: 9, end: 9 },
           {
             variables: {
               i,
@@ -77,7 +95,11 @@ export function* bubbleSortGenerator(
   yield createStep(
     'done',
     { inputSequence, array: [...arr] },
-    'Sort complete! ✓',
-    { start: 11, end: 11 },
+    [
+      `Done: arr[0] ≤ … ≤ arr[n−1].`,
+      '',
+      '✓',
+    ].join('\n'),
+    { start: 13, end: 13 },
   );
 }

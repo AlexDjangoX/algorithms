@@ -30,16 +30,26 @@ export function* heapSortGenerator(
   yield createStep(
     'init',
     { inputSequence, array: [...arr] },
-    `Input: [${arr.join(', ')}] — n = ${n}; max-heap, then extract max to the end`,
-    { start: 1, end: 3 },
+    [
+      `n = ${n}; arr is a copy of the input.`,
+      '',
+      `Max-heap on [0..heapSize−1]: parent i has children 2i+1, 2i+2; arr[i] ≥ children when in range (ties ok).`,
+      '',
+      `Build heap, then repeatedly swap root with arr[end] and siftDown(0, end) for end = n−1 … 1.`,
+    ].join('\n'),
+    { start: 1, end: 4 },
   );
 
   if (n <= 1) {
     yield createStep(
       'done',
       { inputSequence, array: [...arr] },
-      'Sort complete! ✓',
-      { start: 1, end: 7 },
+      [
+        'If n ≤ 1, the array is trivially sorted in non-decreasing order.',
+        '',
+        '✓',
+      ].join('\n'),
+      { start: 1, end: 11 },
     );
     return;
   }
@@ -70,8 +80,14 @@ export function* heapSortGenerator(
           array: [...arr],
           highlightIndices: highlights,
         },
-        `siftDown(heapSize=${heapSize}): arr[${i}]=${arr[i]}, ${leftStr}, ${rightStr} → largest = ${largest}`,
-        { start: 16, end: 22 },
+        [
+          `siftDown(i = ${i}, heapSize = ${heapSize}); heap indices 0..${heapSize - 1}.`,
+          '',
+          `arr[${i}] = ${arr[i]!}; ${leftStr}; ${rightStr}.`,
+          '',
+          `largest = argmax of parent and existing children (strict >). If largest = i, done.`,
+        ].join('\n'),
+        { start: 23, end: 27 },
         {
           variables: {
             i,
@@ -96,8 +112,10 @@ export function* heapSortGenerator(
           array: [...arr],
           highlightIndices: [i, largest],
         },
-        `[arr[${i}], arr[${largest}]] = [arr[${largest}], arr[${i}]]; continue sifting from index ${largest}`,
-        { start: 23, end: 24 },
+        [
+          `Swap parent with largest child; continue siftDown from that child.`,
+        ].join('\n'),
+        { start: 29, end: 30 },
         {
           variables: {
             i,
@@ -118,8 +136,10 @@ export function* heapSortGenerator(
       array: [...arr],
       highlightIndices: [],
     },
-    'Phase 1: buildMaxHeap — sift down each non-leaf from bottom to top',
-    { start: 10, end: 11 },
+    [
+      'Phase 1 — buildMaxHeap: siftDown(i, n) for i = ⌊n/2⌋−1 … 0.',
+    ].join('\n'),
+    { start: 13, end: 16 },
   );
 
   for (let i = Math.floor(n / 2) - 1; i >= 0; i--) {
@@ -130,8 +150,10 @@ export function* heapSortGenerator(
         array: [...arr],
         highlightIndices: [i],
       },
-      `buildMaxHeap: siftDown(arr, ${i}, ${n})`,
-      { start: 11, end: 12 },
+      [
+        `siftDown(${i}, ${n}): fix subtree at ${i} (children already heaps).`,
+      ].join('\n'),
+      { start: 15, end: 16 },
       { variables: { i, n } },
     );
     yield* siftDown(i, n);
@@ -144,8 +166,10 @@ export function* heapSortGenerator(
       array: [...arr],
       highlightIndices: [0],
     },
-    'Phase 2: repeatedly swap root with heap tail, then siftDown(arr, 0, end)',
-    { start: 4, end: 6 },
+    [
+      'Phase 2 — swap arr[0] with arr[end] (end = n−1 … 1); that value is final. Heap is [0..end−1]; siftDown(0, end).',
+    ].join('\n'),
+    { start: 5, end: 9 },
   );
 
   for (let end = n - 1; end > 0; end--) {
@@ -157,8 +181,12 @@ export function* heapSortGenerator(
         array: [...arr],
         highlightIndices: [0, end],
       },
-      `extract max: [arr[0], arr[${end}]] = [arr[${end}], arr[0]] — ${arr[end]} in final position`,
-      { start: 5, end: 5 },
+        [
+        `Swap root with arr[${end}]; that value is the largest still in [0..${end}], so index ${end} is correct.`,
+        '',
+        `siftDown(0, ${end}) on [0..${end - 1}].`,
+      ].join('\n'),
+      { start: 7, end: 7 },
       { variables: { i: 0, j: end, 'arr[i]': arr[0]!, 'arr[j]': arr[end]! } },
     );
 
@@ -168,7 +196,11 @@ export function* heapSortGenerator(
   yield createStep(
     'done',
     { inputSequence, array: [...arr] },
-    'Sort complete! ✓',
-    { start: 7, end: 7 },
+    [
+      'After n−1 extractions, arr[0] is the smallest remaining element; the array is sorted in non-decreasing order.',
+      '',
+      '✓',
+    ].join('\n'),
+    { start: 11, end: 11 },
   );
 }

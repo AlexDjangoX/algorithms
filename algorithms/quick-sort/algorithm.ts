@@ -29,7 +29,11 @@ export function* quickSortGenerator(
   yield createStep(
     'init',
     { inputSequence, array: [...arr] },
-    `Input: [${arr.join(', ')}] — n = ${n}; quickSort(arr, 0, n - 1) with Lomuto partition`,
+    [
+      `n = ${n}; arr is a copy of the input.`,
+      '',
+      `Lomuto: pivot = arr[hi]. After partition, arr[lo..p−1] ≤ arr[p] ≤ arr[p+1..hi]; pivot stays fixed for this subproblem.`,
+    ].join('\n'),
     { start: 1, end: 2 },
   );
 
@@ -45,8 +49,12 @@ export function* quickSortGenerator(
         array: [...arr],
         highlightIndices: [hi],
       },
-      `pivot = arr[${hi}] = ${pivotVal}; partition(arr, ${lo}, ${hi})`,
-      { start: 15, end: 16 },
+      [
+        `Partition [${lo}..${hi}]; pivot = arr[${hi}] = ${pivotVal}.`,
+        '',
+        `[lo..i−1] ≤ pivot; [i..j−1] > pivot (for j moving lo..hi−1).`,
+      ].join('\n'),
+      { start: 17, end: 19 },
       { variables: { lo, hi, pivot: pivotVal } },
     );
 
@@ -59,8 +67,10 @@ export function* quickSortGenerator(
           array: [...arr],
           highlightIndices: [j, hi],
         },
-        `arr[${j}] <= pivot?  arr[${j}]=${arr[j]}, pivot=${pivotVal}`,
-        { start: 17, end: 18 },
+        [
+          `If arr[${j}] ≤ ${pivotVal}, swap into the ≤ region and grow i.`,
+        ].join('\n'),
+        { start: 22, end: 22 },
         {
           variables: {
             j,
@@ -81,8 +91,10 @@ export function* quickSortGenerator(
               array: [...arr],
               highlightIndices: [i, j],
             },
-            `[arr[${i}], arr[${j}]] = [arr[${j}], arr[${i}]]; i++`,
-            { start: 19, end: 20 },
+            [
+              `Swap arr[${i}] and arr[${j}] to extend the ≤ region; then i increases.`,
+            ].join('\n'),
+            { start: 23, end: 24 },
             { variables: { i, j, 'arr[i]': arr[i]!, 'arr[j]': arr[j]! } },
           );
         }
@@ -99,8 +111,10 @@ export function* quickSortGenerator(
           array: [...arr],
           highlightIndices: [i, hi],
         },
-        `place pivot: [arr[${i}], arr[${hi}]] = [arr[${hi}], arr[${i}]]; return ${i}`,
-        { start: 23, end: 24 },
+        [
+          `Swap pivot into place: arr[${i}] = pivot; left ≤ pivot, right ≥ pivot.`,
+        ].join('\n'),
+        { start: 27, end: 27 },
         { variables: { i, hi, pivotIndex: i } },
       );
     }
@@ -112,8 +126,10 @@ export function* quickSortGenerator(
         array: [...arr],
         highlightIndices: [i],
       },
-      `partition returns p = ${i}; arr[${i}] is in final position`,
-      { start: 24, end: 24 },
+      [
+        `p = ${i}: pivot is final for [${lo}..${hi}]; recurse left and right only.`,
+      ].join('\n'),
+      { start: 28, end: 28 },
       { variables: { p: i, lo, hi } },
     );
 
@@ -131,7 +147,9 @@ export function* quickSortGenerator(
         array: [...arr],
         highlightIndices: lo <= hi ? [lo, hi] : [],
       },
-      `sort(arr, ${lo}, ${hi})`,
+      [
+        `Recursive call on subarray indices [${lo}..${hi}].`,
+      ].join('\n'),
       { start: 5, end: 6 },
       { variables: { lo, hi } },
     );
@@ -144,8 +162,10 @@ export function* quickSortGenerator(
           array: [...arr],
           highlightIndices: lo === hi ? [lo] : [],
         },
-        `lo >= hi /* ${lo}, ${hi} */ → return`,
-        { start: 6, end: 8 },
+        [
+          `If lo ≥ hi, the subarray has at most one element; it is already sorted.`,
+        ].join('\n'),
+        { start: 7, end: 8 },
         { variables: { lo, hi } },
       );
       return;
@@ -160,8 +180,10 @@ export function* quickSortGenerator(
         array: [...arr],
         highlightIndices: [p],
       },
-      `sort(arr, ${lo}, ${p - 1}); sort(arr, ${p + 1}, ${hi})`,
-      { start: 9, end: 11 },
+      [
+        `Recursively sort arr[${lo}..${p - 1}] and arr[${p + 1}..${hi}]. By the partition result, every key in arr[${lo}..${p - 1}] is ≤ arr[${p}], and every key in arr[${p + 1}..${hi}] is ≥ arr[${p}].`,
+      ].join('\n'),
+      { start: 12, end: 13 },
       { variables: { p, lo, hi } },
     );
 
@@ -176,7 +198,9 @@ export function* quickSortGenerator(
   yield createStep(
     'done',
     { inputSequence, array: [...arr] },
-    `done: arr = [${arr.join(', ')}]`,
-    { start: 1, end: 2 },
+    [
+      `Done: arr is non-decreasing — [${arr.join(', ')}].`,
+    ].join('\n'),
+    { start: 1, end: 5 },
   );
 }

@@ -227,22 +227,26 @@ export function AlgorithmPlayer<TData = LibrarySortData>({
           vizData={vizData}
           heading={inputPreviewHeading}
         />
-        {/* Two columns on lg: left = code + controls, right = viz + status. Mobile: viz first, then code. */}
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:gap-8 lg:items-stretch">
-          <div className="flex min-h-0  gap-5 order-2 lg:order-1 flex-col-reverse lg:flex-col lg:min-h-112">
-            <div className="flex min-h-0 flex-1 flex-col gap-5 lg:min-h-80">
-              {codeViewer}
-            </div>
+        {/*
+          Mobile: graph → controls → status → code (controls sit directly under the viz).
+          lg: left column = code + controls; right column = viz | status (status only in right column on lg).
+        */}
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:grid-rows-[auto_minmax(0,1fr)] lg:gap-8 lg:items-stretch">
+          <div className="order-4 flex min-h-0 flex-col gap-5 lg:order-0 lg:col-start-1 lg:row-start-1 lg:min-h-80">
+            {codeViewer}
+          </div>
+          <div className="order-2 lg:order-0 lg:col-start-1 lg:row-start-2">
             {controls}
           </div>
-          <div className="flex min-h-0 flex-col gap-5 order-1 lg:order-2 lg:min-h-112">
-            <div className="flex min-h-0 flex-1 flex-col gap-5 lg:min-h-80 lg:flex-row lg:items-stretch lg:gap-6">
-              <div className="min-h-0 min-w-0 flex-1">{barViz}</div>
-              <aside className="flex min-h-0 w-full shrink-0 flex-col lg:h-full lg:w-[min(19rem,36%)] lg:max-w-sm">
-                {statusBlock}
-              </aside>
-            </div>
+          <div className="order-1 flex min-h-0 flex-col gap-5 lg:order-0 lg:col-start-2 lg:row-start-1 lg:row-span-2 lg:min-h-112 lg:flex-row lg:items-stretch lg:gap-6">
+            <div className="min-h-0 min-w-0 flex-1">{barViz}</div>
+            <aside className="hidden min-h-0 w-full shrink-0 flex-col lg:flex lg:h-full lg:w-[min(19rem,36%)] lg:max-w-sm">
+              {statusBlock}
+            </aside>
           </div>
+          <aside className="order-3 flex min-h-0 w-full shrink-0 flex-col lg:hidden">
+            {statusBlock}
+          </aside>
         </div>
       </div>
     );
@@ -251,8 +255,8 @@ export function AlgorithmPlayer<TData = LibrarySortData>({
   return (
     <div className="flex flex-col gap-5">
       {barViz}
-      {statusBlock}
       {controls}
+      {statusBlock}
       {codeViewer}
     </div>
   );

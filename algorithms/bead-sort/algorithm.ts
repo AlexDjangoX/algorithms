@@ -4,7 +4,7 @@ export interface BeadSortData {
   /**
    * grid[row][col] = 1 if bead present.
    * n rows (one per input element), maxVal cols (one per rod).
-   * Row 0 = top element. After gravity: row 0 = smallest, row n-1 = largest.
+   * Row 0 = top. After gravity on each column, beads occupy bottom rows of that column.
    */
   grid: number[][];
   /** Original input */
@@ -76,17 +76,19 @@ export function* beadSortGenerator(
     array: rowCounts(grid),
   });
 
-  // ── Init ────────────────────────────────────────────────────────────────────
   const grid = makeGrid();
 
   yield createStep(
     'init',
     snap(grid, 'init'),
-    `Input: [${arr.join(', ')}] — ${n} elements, max ${maxVal}`,
-    { start: 1, end: 3 },
+    [
+      `n = ${n}, M = max value = ${maxVal}. Grid is n × M with entries 0/1.`,
+      '',
+      `Bead count Σ_i arr[i] equals the number of 1s in the grid at every step.`,
+    ].join('\n'),
+    { start: 1, end: 8 },
   );
 
-  // ── Place: row by row, beads left-aligned ────────────────────────────────
   for (let i = 0; i < n; i++) {
     for (let j = 0; j < arr[i]!; j++) {
       grid[i]![j] = 1;
@@ -94,19 +96,18 @@ export function* beadSortGenerator(
     yield createStep(
       'place',
       snap(grid, 'place', undefined, i),
-      `for row i = ${i}, arr[${i}] = ${arr[i]} → place ${arr[i]} beads left-to-right`,
-      { start: 9, end: 14 },
+      [
+        `For row i = ${i}, place arr[i] = ${arr[i]} beads: set grid[i][0] = … = grid[i][${arr[i]! - 1}] = 1 (if arr[i] = 0, nothing placed).`,
+      ].join('\n'),
+      { start: 11, end: 13 },
       { variables: { row: i, beads: arr[i] } },
     );
   }
 
-  // ── Gravity: column by column, beads fall to the bottom rows ────────────
   for (let j = 0; j < maxVal; j++) {
-    // Count beads in this column across all rows
     let count = 0;
     for (let i = 0; i < n; i++) count += grid[i]![j]!;
 
-    // Push them to the bottom: last `count` rows get 1, rest get 0
     for (let i = 0; i < n; i++) {
       grid[i]![j] = i >= n - count ? 1 : 0;
     }
@@ -114,18 +115,23 @@ export function* beadSortGenerator(
     yield createStep(
       'gravity',
       snap(grid, 'gravity', j),
-      `for column j = ${j}: pack ${count} bead(s) into bottom rows of grid[i][${j}]`,
-      { start: 16, end: 22 },
+      [
+        `Column j = ${j}: count = ${count} beads. Pack them to the bottom rows: grid[i][j] = 1 iff i ≥ n − count.`,
+      ].join('\n'),
+      { start: 18, end: 21 },
       { variables: { rod: j, beads: count } },
     );
   }
 
-  // ── Done ───────────────────────────────────────────────────────────────────
   const sorted = rowCounts(grid);
   yield createStep(
     'done',
     { ...snap(grid, 'done'), array: sorted },
-    `Sorted: [${sorted.join(', ')}] ✓`,
-    { start: 24, end: 25 },
+    [
+      `Row sums match the input multiset; here they read non-decreasing left to right — the sorted order of the original values.`,
+      '',
+      '✓',
+    ].join('\n'),
+    { start: 26, end: 28 },
   );
 }

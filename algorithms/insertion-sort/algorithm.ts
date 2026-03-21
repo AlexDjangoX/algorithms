@@ -25,9 +25,9 @@ export function* insertionSortGenerator(
     'init',
     { inputSequence, array: [...arr] },
     [
-      `Starting array (${n} elements): [${arr.join(', ')}]`,
+      `n = ${n}; arr is a copy of the input.`,
       '',
-      'We walk the array from left to right. After each round, the numbers from the start through the current position are in order (smallest to largest). In the next round we take the next number to the right and move it left until it sits in the correct spot among the ones we already sorted.',
+      `For i = 1 … n−1: before each iteration, arr[0..i−1] is sorted (trivial for i = 1). Insert arr[i] into that prefix so arr[0..i] stays sorted.`,
     ].join('\n'),
     { start: 1, end: 5 },
     { variables: { n } },
@@ -49,16 +49,12 @@ export function* insertionSortGenerator(
     const insertLines =
       from === i
         ? [
-            `Round ${i}: the value ${key} is already in the correct place among the sorted left part (nothing bigger than ${key} sat to its left).`,
-            '',
-            `So we leave ${key} at index ${i}.`,
+            `i = ${i}, key = ${key}: no shifts (arr[i−1] ≤ key). Key stays at i; arr[0..i] sorted.`,
           ]
         : [
-            `Round ${i}: we insert ${key}, which started at index ${i}.`,
+            `i = ${i}, key = ${key}: shift larger elements right until arr[j] ≤ key or j < 0.`,
             '',
-            `The cells from index 0 through ${i - 1} are already sorted. While the cell on the left still holds a number larger than ${key}, we copy that number one step to the right — like sliding blocks to open a gap.`,
-            '',
-            `Then we write ${key} into that gap at index ${from} (see “placedAt”). After this, positions 0 through ${i} are in sorted order.`,
+            `Place key at j+1 = ${from}; arr[0..i] is now sorted.`,
           ];
 
     yield createStep(
@@ -73,7 +69,11 @@ export function* insertionSortGenerator(
   yield createStep(
     'done',
     { inputSequence, array: [...arr] },
-    'Insertion sort complete — array is in non-decreasing order ✓',
+    [
+      `After i = n−1: full array is non-decreasing.`,
+      '',
+      '✓',
+    ].join('\n'),
     { start: 17, end: 17 },
   );
 }

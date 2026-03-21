@@ -56,7 +56,11 @@ export function* binarySearchGenerator(
       highlightIndices: [],
       range: null,
     },
-    `Phase 1: sort arr — input: [${arr.join(', ')}], n = ${n}, then binary search needs sorted arr`,
+    [
+      `Phase 1 — insertion sort (${n} elements) until arr is non-decreasing.`,
+      '',
+      `Phase 2 target (present in this demo): ${target}.`,
+    ].join('\n'),
     { start: 1, end: 3 },
     { variables: { n, target } },
   );
@@ -86,19 +90,13 @@ export function* binarySearchGenerator(
       },
       (from === i
         ? [
-            `Sorting (phase 1), round ${i}: ${key} is already in order relative to the cells to its left.`,
-            '',
-            `It stays at index ${i}. Cells 0 … ${i} are sorted.`,
+            `Insert i = ${i}: key = ${key} already in place; arr[0..i] sorted.`,
           ]
         : [
-            `Sorting (phase 1), round ${i}: insert ${key} from index ${i}.`,
-            '',
-            `Cells 0 … ${i - 1} are sorted. Copy each larger left neighbor one step right to open a gap, then write ${key} at index ${from} (placedAt).`,
-            '',
-            `Cells 0 … ${i} are now sorted.`,
+            `Insert i = ${i}: key = ${key} placed at ${from}; arr[0..i] sorted.`,
           ]
       ).join('\n'),
-      { start: 5, end: 9 },
+      { start: 6, end: 10 },
       { variables: { i, key, placedAt: from } },
     );
   }
@@ -113,8 +111,12 @@ export function* binarySearchGenerator(
       highlightIndices: [],
       range: null,
     },
-    `arr sorted: [${arr.join(', ')}]; Phase 2: binary search for target === ${target}`,
-    { start: 11, end: 11 },
+    [
+      `Array is sorted; binary search applies.`,
+      '',
+      `Search for target = ${target}.`,
+    ].join('\n'),
+    { start: 12, end: 12 },
     { variables: { target, n } },
   );
 
@@ -128,8 +130,10 @@ export function* binarySearchGenerator(
       highlightIndices: [],
       range: { lo: 0, hi: n - 1 },
     },
-    `let lo = 0, hi = ${n - 1}; while (lo <= hi) { mid = (lo + hi) >> 1; … }`,
-    { start: 13, end: 17 },
+    [
+      `lo = 0, hi = ${n - 1}. If target exists, it lies in arr[lo..hi].`,
+    ].join('\n'),
+    { start: 14, end: 19 },
     { variables: { target, lo: 0, hi: n - 1 } },
   );
 
@@ -150,8 +154,10 @@ export function* binarySearchGenerator(
         highlightIndices: [lo, mid, hi],
         range: { lo, hi, mid },
       },
-      `lo = ${lo}, hi = ${hi}, mid = ${mid} → arr[${mid}] = ${midVal}`,
-      { start: 17, end: 19 },
+      [
+        `mid = ⌊(lo + hi)/2⌋ = ${mid}; arr[mid] = ${midVal}.`,
+      ].join('\n'),
+      { start: 19, end: 21 },
       { variables: { lo, hi, mid, midVal, target } },
     );
 
@@ -166,8 +172,10 @@ export function* binarySearchGenerator(
           highlightIndices: [mid],
           range: { lo: mid, hi: mid, mid },
         },
-        `arr[${mid}] === target /* ${target} */ → return ${mid}`,
-        { start: 19, end: 19 },
+        [
+          `Found: return index ${mid}.`,
+        ].join('\n'),
+        { start: 21, end: 21 },
         { variables: { result: mid, target } },
       );
       return;
@@ -185,8 +193,10 @@ export function* binarySearchGenerator(
           highlightIndices: [lo, hi],
           range: { lo, hi },
         },
-        `arr[mid] < target → lo = mid + 1 /* lo = ${lo} */`,
-        { start: 20, end: 20 },
+        [
+          `arr[mid] < target → target is right of mid. lo ← ${lo}.`,
+        ].join('\n'),
+        { start: 22, end: 22 },
         { variables: { lo, hi, midVal, target } },
       );
     } else {
@@ -201,8 +211,10 @@ export function* binarySearchGenerator(
           highlightIndices: [lo, hi],
           range: { lo, hi },
         },
-        `arr[mid] > target → hi = mid - 1 /* hi = ${hi} */`,
-        { start: 21, end: 21 },
+        [
+          `arr[mid] > target → target is left of mid. hi ← ${hi}.`,
+        ].join('\n'),
+        { start: 23, end: 23 },
         { variables: { lo, hi, midVal, target } },
       );
     }
@@ -218,8 +230,10 @@ export function* binarySearchGenerator(
       highlightIndices: [],
       range: null,
     },
-    `Not found: ${target} is not in the array (return -1) ✗`,
-    { start: 23, end: 23 },
+    [
+      `lo > hi: target not in arr. Return −1.`,
+    ].join('\n'),
+    { start: 25, end: 25 },
     { variables: { result: -1, target } },
   );
 }
