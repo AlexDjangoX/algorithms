@@ -334,6 +334,44 @@ function playArpeggio(
   });
 }
 
+/**
+ * Opening motif only — short celebratory stinger when a *sort* reaches `done`.
+ * (Not a full reproduction; `phase === 'search'` completions keep the arpeggio.)
+ */
+const IMPERIAL_MARCH_SORT_DONE: readonly {
+  t: number;
+  note: string;
+  dur: number;
+  v?: number;
+}[] = [
+  { t: 0.0, note: 'G3', dur: 0.13, v: 0.74 },
+  { t: 0.15, note: 'G3', dur: 0.13, v: 0.72 },
+  { t: 0.32, note: 'G3', dur: 0.13, v: 0.74 },
+  { t: 0.5, note: 'Eb3', dur: 0.4, v: 0.8 },
+  { t: 0.96, note: 'Bb3', dur: 0.14, v: 0.72 },
+  { t: 1.14, note: 'G3', dur: 0.13, v: 0.74 },
+  { t: 1.31, note: 'Eb3', dur: 0.13, v: 0.7 },
+  { t: 1.48, note: 'Bb3', dur: 0.14, v: 0.72 },
+  { t: 1.66, note: 'G3', dur: 0.13, v: 0.76 },
+  { t: 1.83, note: 'D4', dur: 0.13, v: 0.74 },
+  { t: 2.0, note: 'Eb4', dur: 0.55, v: 0.82 },
+];
+
+function playImperialMarchSortComplete(preset: SoundPreset): void {
+  const T = getTone();
+  if (!T) return;
+  const inst = getInstrument(preset);
+  if (!inst) return;
+  const now = T.now();
+  for (const { t, note, dur, v = 0.75 } of IMPERIAL_MARCH_SORT_DONE) {
+    try {
+      inst.triggerAttackRelease(note, dur, now + t, v);
+    } catch {
+      // Transient audio scheduling error
+    }
+  }
+}
+
 // ── Step → sound mapping ──────────────────────────────────────────────────────
 // Data shape: bubble/merge use { array: number[], highlightIndices?: number[] }.
 // Library sort uses { array: (number|null)[], input: number[], insertingValue?: number }
@@ -419,10 +457,22 @@ export function playStep(
     return;
   }
 
-  // done — ascending arpeggio of sorted result
+  // done — sort: Imperial March–style stinger; search phase: pentatonic arpeggio
   if (step.id === 'done') {
     const values = getValuesForArpeggio(data, 'done');
     const m = values.length > 0 ? Math.max(...values) : dataMax;
+    const phase = (data as { phase?: string } | undefined)?.phase;
+
+    if (phase !== 'search') {
+      if (values.length > 0) {
+        playImperialMarchSortComplete(preset);
+        return;
+      }
+      playNote(valueToNote(8, dataMax), dur * 2, preset, 0, 0.6);
+      playNote(valueToNote(dataMax, dataMax), dur * 1.5, preset, 0.1, 0.5);
+      return;
+    }
+
     if (values.length > 0) playArpeggio(values, 0.08, 0.022, preset, 0.7, m);
     else {
       playNote(valueToNote(8, dataMax), dur * 2, preset, 0, 0.6);
@@ -438,6 +488,28 @@ export function playStep(
     ['pick_value', 'binary_search', 'insert'].includes(step.id)
   ) {
     playNote(note(insertingVal), dur, preset, 0, 0.65);
+    return;
+  }
+
+  // Heap sort — parent vs larger child (silent when heap property already holds)
+  const parentIdxHb = vars['parentIdx'];
+  const largestIdxHb = vars['largestIdx'];
+  if (
+    step.id === 'heap_compare' &&
+    typeof vars['parent'] === 'number' &&
+    typeof vars['other'] === 'number' &&
+    typeof parentIdxHb === 'number' &&
+    typeof largestIdxHb === 'number'
+  ) {
+    if (parentIdxHb === largestIdxHb) return;
+    playNote(note(vars['parent'] as number), dur, preset, 0, 0.6);
+    playNote(
+      note(vars['other'] as number),
+      dur * 0.7,
+      preset,
+      dur * 0.08,
+      0.5,
+    );
     return;
   }
 
@@ -641,6 +713,8 @@ export function playStep(
       'sort_base',
       'recurse',
       'partition_done',
+      'heap_phase',
+      'heap_build',
     ].includes(step.id)
   )
     return;

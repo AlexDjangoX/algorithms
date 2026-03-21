@@ -1,6 +1,7 @@
 "use client";
 
 import { gsap } from "gsap";
+import { useTheme } from "next-themes";
 import { useEffect, useMemo, useRef } from "react";
 import type { LibrarySortData } from "@/algorithms/library-sort/algorithm";
 
@@ -57,6 +58,7 @@ function computeSlots(
 
 export function BarViz({ data }: { data: LibrarySortData }) {
   const { array, input, insertingValue } = data;
+  const { resolvedTheme } = useTheme();
 
   const containerRef = useRef<HTMLDivElement>(null);
   const barEls = useRef<Map<number, HTMLDivElement>>(new Map());
@@ -76,6 +78,10 @@ export function BarViz({ data }: { data: LibrarySortData }) {
     if (!container || n === 0) return;
     const W = container.offsetWidth;
     if (W === 0) return;
+
+    const root = document.documentElement;
+    const fg = getComputedStyle(root).getPropertyValue("--foreground").trim();
+    const bg = getComputedStyle(root).getPropertyValue("--background").trim();
 
     const barW = W / n;
 
@@ -117,19 +123,19 @@ export function BarViz({ data }: { data: LibrarySortData }) {
         gsap.to(el, {
           x: targetX,
           height: h,
-          backgroundColor: isActive
-            ? "#f43f5e"
-            : barColor(val, maxVal),
-          boxShadow: isActive ? "0 0 22px rgba(244,63,94,0.7)" : "none",
+          backgroundColor: isActive ? fg : barColor(val, maxVal),
+          boxShadow: isActive
+            ? `0 0 0 2px ${bg}, 0 8px 26px rgb(0 0 0 / 0.28)`
+            : "none",
           // Unplaced bars dim once the sort has started
           opacity: isPlaced || placed.size === 0 ? 1 : 0.45,
-          zIndex: isPlaced ? 2 : 1,
+          zIndex: isActive ? 4 : isPlaced ? 2 : 1,
           duration: 0.35,
           ease: "power2.out",
         });
       }
     });
-  }, [array, insertingValue, input, n, maxVal, finalRankOf]);
+  }, [array, insertingValue, input, n, maxVal, finalRankOf, resolvedTheme]);
 
   return (
     <div

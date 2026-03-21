@@ -38,10 +38,13 @@ The goal is simple: **make algorithms intuitive, not intimidating.**
 - **Responsive two-column layout on large screens** — code viewer pinned on the left, animated bar chart on the right — both visible simultaneously
 - **Single-column stacked layout on mobile**
 
+### Step sonification (optional)
+- **Tone.js** — when sound is enabled, each step maps data (compares, swaps, etc.) to notes; timbre presets (synth, organ, piano, …) persist in `localStorage`
+
 ### Modularity
 - **Single dynamic route** — every algorithm is served from `/algorithms/[slug]`; no per-algorithm page or layout files
 - **Algorithm registry** — one place wires metadata, code, generator, and optional visualization per slug
-- **Reusable visualizations** — `BarArrayViz` for any array-with-highlights algorithm (bubble, insertion, etc.); custom viz for special cases (e.g. Library Sort’s gapped bars)
+- **Reusable visualizations** — `BarArrayViz` for array + `highlightIndices`; custom viz for Library Sort (`BarViz`), BST, bead sort, and the binary-search flow (`BinarySearchViz`)
 
 ### Variables Panel
 - Live display of all algorithm variables at the current step (e.g. `val`, `pos`, `round`, `insPos`)
@@ -55,6 +58,7 @@ The goal is simple: **make algorithms intuitive, not intimidating.**
 | Framework | [Next.js 16](https://nextjs.org/) (App Router, Turbopack) |
 | UI Library | [React 19](https://react.dev/) |
 | Animation | [GSAP 3](https://gsap.com/) |
+| Audio (optional) | [Tone.js](https://tonejs.github.io/) |
 | Syntax Highlighting | [prism-react-renderer](https://github.com/FormidableLabs/prism-react-renderer) |
 | Styling | [Tailwind CSS v4](https://tailwindcss.com/) |
 | Language | [TypeScript 5](https://www.typescriptlang.org/) |
@@ -67,16 +71,16 @@ Component files use **PascalCase** (e.g. `BarViz.tsx`, `AlgorithmPageContent.tsx
 
 ```
 .
-├── algorithms/                        # One folder per algorithm (generator + code)
-│   ├── library-sort/
-│   │   ├── algorithm.ts              # Generator yielding AlgorithmStep
-│   │   └── code.ts                   # Display code string
+├── algorithms/                        # Each folder: algorithm.ts + code.ts (+ README.md)
+│   ├── bead-sort/
+│   ├── binary-search/
+│   ├── binary-search-tree/
 │   ├── bubble-sort/
-│   │   ├── algorithm.ts
-│   │   └── code.ts
+│   ├── heap-sort/
+│   ├── insertion-sort/
+│   ├── library-sort/
 │   ├── merge-sort/
-│   │   ├── algorithm.ts
-│   │   └── code.ts
+│   ├── quick-sort/
 │   └── README.md                     # "Adding a new algorithm" guide
 ├── app/
 │   ├── layout.tsx                   # Root layout (theme, fonts)
@@ -88,8 +92,12 @@ Component files use **PascalCase** (e.g. `BarViz.tsx`, `AlgorithmPageContent.tsx
 │   │   └── use-mobile.ts
 │   ├── lib/
 │   │   ├── algorithm-registry.ts    # slug → code, generator, viz (single source)
+│   │   ├── algorithm-sound.ts       # Tone.js step → note mapping
+│   │   ├── default-input.ts         # Shared shuffle / demo inputs
+│   │   ├── extract-visualization-input.ts
 │   │   ├── types.ts                 # AlgorithmStep, CodeRange
-│   │   └── use-algorithm-player.ts   # Step collection, playback state
+│   │   ├── use-algorithm-player.ts  # Step collection, playback state
+│   │   └── utils.ts
 │   └── algorithms/
 │       ├── layout.tsx               # Navbar + Footer for all algorithm pages
 │       └── [slug]/
@@ -104,7 +112,7 @@ Component files use **PascalCase** (e.g. `BarViz.tsx`, `AlgorithmPageContent.tsx
 │   ├── code-viewer/
 │   │   └── CodeViewer.tsx           # Syntax-highlighted code + line highlight
 │   ├── controls/
-│   │   └── Controls.tsx             # Play / Pause / Step / Speed / Scrubber
+│   │   └── Controls.tsx             # Play / Pause / Step / Speed / Scrubber / sound
 │   ├── home/
 │   │   └── AlgorithmGrid.tsx        # Home page grid of algorithm cards
 │   ├── layout/
@@ -117,8 +125,12 @@ Component files use **PascalCase** (e.g. `BarViz.tsx`, `AlgorithmPageContent.tsx
 │   ├── variables-panel/
 │   │   └── VariablesPanel.tsx      # Live variables at current step
 │   └── visualization/
+│       ├── ArrayViz.tsx
+│       ├── BarArrayViz.tsx          # Generic array + highlightIndices
 │       ├── BarViz.tsx               # Library Sort — gapped array, collision-free slots
-│       └── BarArrayViz.tsx          # Generic array + highlightIndices
+│       ├── BeadSortViz.tsx
+│       ├── BinarySearchViz.tsx
+│       └── BSTViz.tsx
 ├── lib/
 │   ├── data/
 │   │   └── algorithms.ts            # Metadata (slug, name, complexity, status)
@@ -193,14 +205,20 @@ npm start
 
 ## Algorithms
 
-| Algorithm | Category | Time Complexity | Space Complexity | Status |
+Synced with `lib/data/algorithms.ts` (home grid excludes `cardKind: 'application'` entries from the main sort/search cards).
+
+| Algorithm | Category | Time | Space | Status |
 |---|---|---|---|---|
-| Library Sort | Sorting | O(n · log n) | O(n) | ✅ Live |
-| Bubble Sort | Sorting | O(n²) | O(1) | ✅ Live |
-| Merge Sort | Sorting | O(n · log n) | O(n) | ✅ Live |
-| Quick Sort | Sorting | O(n · log n) avg | O(log n) | 🔜 Planned |
-| Binary Search | Searching | O(log n) | O(1) | 🔜 Planned |
-| A\* Pathfinding | Graph | O(E · log V) | O(V) | 🔜 Planned |
+| Library Sort | Sorting | O(n · log n) | O(n) | Live |
+| Bubble Sort | Sorting | O(n²) | O(1) | Live |
+| Insertion Sort | Sorting | O(n²) | O(1) | Live |
+| Merge Sort | Sorting | O(n · log n) | O(n) | Live |
+| Heap Sort | Sorting | O(n · log n) | O(1) | Live |
+| Bead Sort | Sorting | O(n · S) | O(n · S) | Live |
+| Quick Sort | Sorting | O(n · log n) avg | O(log n) | Live |
+| Binary Search Tree | Trees | O(h) insert & search | O(n) | Live |
+| Binary Search | Applications | O(n²) sort + O(log n) search | O(1) | Live |
+| A\* Pathfinding | Graph | O(E · log V) | O(V) | Coming soon |
 
 ---
 

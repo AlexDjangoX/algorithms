@@ -116,7 +116,7 @@ function BeadRow({
   if (isDone) {
     barColor = "hsl(var(--primary))";
   } else if (isActiveRow) {
-    barColor = "#22c55e"; // bright green — being placed
+    barColor = "var(--foreground)"; // high-contrast vs chromatic bars (light: dark, dark: light)
   } else if (isSettled) {
     barColor = "hsl(var(--primary) / 0.55)"; // dimmed — settled by gravity
   } else if (phase === "gravity") {

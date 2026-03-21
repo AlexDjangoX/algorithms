@@ -39,6 +39,16 @@ const DEFAULT_LIBRARY_SORT_DATA: LibrarySortData = {
   input: [],
 };
 
+const CODE_COMMENTS_STORAGE_KEY = 'algoviz-show-code-comments';
+
+function getStoredShowCodeComments(): boolean {
+  if (typeof window === 'undefined') return true;
+  const v = localStorage.getItem(CODE_COMMENTS_STORAGE_KEY);
+  if (v === '0') return false;
+  if (v === '1') return true;
+  return true;
+}
+
 export function AlgorithmPlayer<TData = LibrarySortData>({
   createGenerator,
   code,
@@ -70,6 +80,7 @@ export function AlgorithmPlayer<TData = LibrarySortData>({
 
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [soundPreset, setSoundPreset] = useState<SoundPreset>('synth');
+  const [showCodeComments, setShowCodeComments] = useState(true);
 
   // Keep refs in sync so the sound effect always reads the latest values without
   // being listed as deps (which would re-trigger sound on every preset/toggle change).
@@ -91,6 +102,10 @@ export function AlgorithmPlayer<TData = LibrarySortData>({
     if (stored !== 'synth') {
       queueMicrotask(() => setSoundPreset(stored));
     }
+  }, []);
+
+  useEffect(() => {
+    queueMicrotask(() => setShowCodeComments(getStoredShowCodeComments()));
   }, []);
 
   const handleSoundPresetChange = (preset: SoundPreset) => {
@@ -158,6 +173,7 @@ export function AlgorithmPlayer<TData = LibrarySortData>({
       code={code}
       highlightRange={currentStep?.codeRange}
       filename={filename}
+      showComments={showCodeComments}
     />
   );
   const controls = (
@@ -190,6 +206,15 @@ export function AlgorithmPlayer<TData = LibrarySortData>({
         resumeAudioContext();
         goToStep(index);
       }}
+      codeComments={{
+        show: showCodeComments,
+        onChange: (show) => {
+          setShowCodeComments(show);
+          if (typeof window !== 'undefined') {
+            localStorage.setItem(CODE_COMMENTS_STORAGE_KEY, show ? '1' : '0');
+          }
+        },
+      }}
     />
   );
 
@@ -211,9 +236,11 @@ export function AlgorithmPlayer<TData = LibrarySortData>({
             {controls}
           </div>
           <div className="flex min-h-0 flex-col gap-5 order-1 lg:order-2 lg:min-h-112">
-            <div className="flex min-h-0 flex-1 flex-col gap-5 lg:min-h-80">
-              {barViz}
-              {statusBlock}
+            <div className="flex min-h-0 flex-1 flex-col gap-5 lg:min-h-80 lg:flex-row lg:items-stretch lg:gap-6">
+              <div className="min-h-0 min-w-0 flex-1">{barViz}</div>
+              <aside className="flex min-h-0 w-full shrink-0 flex-col lg:h-full lg:w-[min(19rem,36%)] lg:max-w-sm">
+                {statusBlock}
+              </aside>
             </div>
           </div>
         </div>

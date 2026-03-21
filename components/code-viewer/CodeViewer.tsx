@@ -1,7 +1,11 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { Highlight, themes } from 'prism-react-renderer';
+import {
+  mapHighlightRangeToStripped,
+  stripCodeCommentsCompact,
+} from '@/app/lib/strip-code-comments';
 import { useTheme } from '@/components/providers/ThemeProvider';
 
 interface CodeViewerProps {
@@ -9,6 +13,8 @@ interface CodeViewerProps {
   highlightRange?: { start: number; end: number };
   language?: string;
   filename?: string;
+  /** When false, comments are stripped and the view is re-compacted (highlights remapped). */
+  showComments?: boolean;
 }
 
 export function CodeViewer({
@@ -16,17 +22,41 @@ export function CodeViewer({
   highlightRange,
   language = 'typescript',
   filename = 'algorithm.ts',
+  showComments = true,
 }: CodeViewerProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const { isDark } = useTheme();
   const start = highlightRange?.start ?? 0;
   const end = highlightRange?.end ?? 0;
 
+  const { displayCode, highlightStart, highlightEnd } = useMemo(() => {
+    if (showComments) {
+      return {
+        displayCode: code,
+        highlightStart: start,
+        highlightEnd: end,
+      };
+    }
+    const { code: stripped, strippedToOriginalLine } =
+      stripCodeCommentsCompact(code);
+    const mapped = mapHighlightRangeToStripped(
+      strippedToOriginalLine,
+      start,
+      end,
+    );
+    return {
+      displayCode: stripped,
+      highlightStart: mapped.start,
+      highlightEnd: mapped.end,
+    };
+  }, [code, showComments, start, end]);
+
   useEffect(() => {
-    if (start < 1 || !scrollContainerRef.current) return;
+    const scrollLine = highlightStart;
+    if (scrollLine < 1 || !scrollContainerRef.current) return;
     const container = scrollContainerRef.current;
     const lineEl = container.querySelector(
-      `[data-line-number="${start}"]`,
+      `[data-line-number="${scrollLine}"]`,
     ) as HTMLElement | null;
     if (!lineEl) return;
     // Scroll only the code viewer container so the page (and viz) stay put
@@ -41,7 +71,7 @@ export function CodeViewer({
       top: Math.max(0, targetScroll),
       behavior: 'smooth',
     });
-  }, [start]);
+  }, [highlightStart, displayCode]);
 
   const ext = filename.split('.').pop()?.toUpperCase() ?? 'TS';
   const extColor =
@@ -65,7 +95,7 @@ export function CodeViewer({
 
       {/* Code content */}
       <div ref={scrollContainerRef} className="max-h-96 overflow-y-auto">
-        <Highlight theme={prismTheme} code={code} language={language}>
+        <Highlight theme={prismTheme} code={displayCode} language={language}>
           {({ className, style, tokens, getLineProps, getTokenProps }) => {
             const raw = (style ?? {}) as React.CSSProperties & {
               background?: string;
@@ -75,13 +105,17 @@ export function CodeViewer({
             ) as React.CSSProperties;
             return (
               <pre
-                className={`${className} m-0 overflow-x-auto p-4 text-sm leading-relaxed`}
+                className={`${className} m-0 overflow-x-auto p-4 text-sm leading-relaxed wrap-anywhere`}
                 style={{ ...restStyle, backgroundColor: 'transparent' }}
               >
                 {tokens.map((line, i) => {
                   const lineNum = i + 1;
                   const isHighlighted =
-                    highlightRange && lineNum >= start && lineNum <= end;
+                    highlightRange &&
+                    highlightStart >= 1 &&
+                    highlightEnd >= 1 &&
+                    lineNum >= highlightStart &&
+                    lineNum <= highlightEnd;
 
                   return (
                     <div
@@ -104,7 +138,7 @@ export function CodeViewer({
                       {isHighlighted && (
                         <span className="absolute left-0 top-0 h-full w-0.75 rounded-r bg-primary" />
                       )}
-                      <span className="flex-1 pl-2">
+                      <span className="min-w-0 flex-1 whitespace-pre-wrap pl-2 wrap-anywhere">
                         {line.map((token, key) => (
                           <span key={key} {...getTokenProps({ token })} />
                         ))}

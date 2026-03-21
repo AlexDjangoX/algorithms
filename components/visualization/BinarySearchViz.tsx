@@ -158,10 +158,13 @@ export function BinarySearchViz({ data }: { data: BinarySearchData }) {
                   left: `${(idx / n) * 100}%`,
                   width: `${100 / n}%`,
                   height: Math.max((val / maxVal) * BAR_H, 6),
-                  backgroundColor: barColor(val, maxVal),
+                  backgroundColor: isHighlight
+                    ? "var(--foreground)"
+                    : barColor(val, maxVal),
                   borderRadius: "3px 3px 0 0",
+                  zIndex: isHighlight ? 2 : 0,
                   boxShadow: isHighlight
-                    ? "0 0 0 2px var(--primary)"
+                    ? "0 0 0 2px var(--background), 0 6px 20px rgb(0 0 0 / 0.22)"
                     : undefined,
                 }}
               />

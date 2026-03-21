@@ -20,6 +20,8 @@ import { mergeSortGenerator } from '@/algorithms/merge-sort/algorithm';
 import { MERGE_SORT_CODE } from '@/algorithms/merge-sort/code';
 import { quickSortGenerator } from '@/algorithms/quick-sort/algorithm';
 import { QUICK_SORT_CODE } from '@/algorithms/quick-sort/code';
+import { heapSortGenerator } from '@/algorithms/heap-sort/algorithm';
+import { HEAP_SORT_CODE } from '@/algorithms/heap-sort/code';
 import { BarArrayViz } from '@/components/visualization/BarArrayViz';
 import {
   bstInsertGenerator,
@@ -56,6 +58,7 @@ const createLibrarySortGenerator = () => librarySortGenerator();
 const createBubbleSortGenerator = () => bubbleSortGenerator();
 const createMergeSortGenerator = () => mergeSortGenerator();
 const createQuickSortGenerator = () => quickSortGenerator();
+const createHeapSortGenerator = () => heapSortGenerator();
 const createBSTGenerator = () => bstInsertGenerator();
 const createBeadSortGenerator = () => beadSortGenerator();
 const createInsertionSortGenerator = () => insertionSortGenerator();
@@ -116,6 +119,13 @@ const IMPLEMENTATIONS: Record<
     code: QUICK_SORT_CODE,
     filename: 'quickSort.ts',
     createGenerator: createQuickSortGenerator,
+    Visualization: BarArrayViz as ComponentType<{ data: unknown }>,
+    defaultVizData: { array: [], inputSequence: [...DEFAULT_INPUT] },
+  },
+  'heap-sort': {
+    code: HEAP_SORT_CODE,
+    filename: 'heapSort.ts',
+    createGenerator: createHeapSortGenerator,
     Visualization: BarArrayViz as ComponentType<{ data: unknown }>,
     defaultVizData: { array: [], inputSequence: [...DEFAULT_INPUT] },
   },

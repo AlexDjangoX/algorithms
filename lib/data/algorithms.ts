@@ -52,6 +52,15 @@ export const ALGORITHMS: Algorithm[] = [
     status: 'live',
   },
   {
+    slug: 'heap-sort',
+    name: 'Heap Sort',
+    category: 'Sorting',
+    description:
+      'Builds a max-heap, then repeatedly extracts the root into the sorted suffix.',
+    complexity: { time: 'O(n · log n)', space: 'O(1)' },
+    status: 'live',
+  },
+  {
     slug: 'bead-sort',
     name: 'Bead Sort',
     category: 'Sorting',

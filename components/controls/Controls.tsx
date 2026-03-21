@@ -11,6 +11,11 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
+export type CodeCommentsControl = {
+  show: boolean;
+  onChange: (show: boolean) => void;
+};
+
 interface ControlsProps {
   isPlaying: boolean;
   isComplete: boolean;
@@ -21,6 +26,8 @@ interface ControlsProps {
   soundPreset?: SoundPreset;
   onSoundChange?: (enabled: boolean) => void;
   onSoundPresetChange?: (preset: SoundPreset) => void;
+  /** Code viewer: comments toggle (omit to hide the control). */
+  codeComments?: CodeCommentsControl;
   onPlay: () => void;
   onPause: () => void;
   onStepForward: () => void;
@@ -42,6 +49,7 @@ export function Controls({
   soundPreset = 'synth',
   onSoundChange,
   onSoundPresetChange,
+  codeComments,
   onPlay,
   onPause,
   onStepForward,
@@ -212,6 +220,43 @@ export function Controls({
               </DropdownMenu>
             )}
           </div>
+        )}
+
+        {codeComments && (
+          <button
+            type="button"
+            onClick={() => codeComments.onChange(!codeComments.show)}
+            className={`
+              flex items-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-medium
+              transition-all duration-150 hover:scale-105 active:scale-95
+              ${
+                codeComments.show
+                  ? 'border-primary bg-primary/15 text-primary'
+                  : 'border-border bg-secondary text-muted-foreground hover:bg-secondary/80'
+              }
+            `}
+            title={
+              codeComments.show
+                ? 'Hide // and block comments in code'
+                : 'Show comments in code'
+            }
+          >
+            <svg
+              className="h-4 w-4 shrink-0"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              aria-hidden
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"
+              />
+            </svg>
+            <span>{codeComments.show ? 'Comments' : 'No comments'}</span>
+          </button>
         )}
 
         {/* Speed */}

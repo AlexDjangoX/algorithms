@@ -31,7 +31,7 @@ Sound is driven by **step type and step data**, not generic beeps:
 | Step type                           | What you hear                                                                            |
 | ----------------------------------- | ---------------------------------------------------------------------------------------- |
 | **Init**                            | Arpeggio of the **input array** in order (the unsorted sequence).                        |
-| **Done**                            | Arpeggio of the **sorted array** (the result).                                           |
+| **Done**                            | **Sort** complete (`phase` ≠ `search`): short **Imperial March–style** opening motif (G minor). **Search** `done` (binary search / BST): pentatonic arpeggio of the array. |
 | **Compare (e.g. bubble)**           | The **two values** at the compared indices (two notes, slightly staggered).              |
 | **Compare (merge)**                 | The **two values** from the left and right runs (`variables.left`, `variables.right`).   |
 | **Swap**                            | The **two values** that were just swapped (distinct timbre: triangle, quick succession). |

@@ -84,7 +84,20 @@ export function* binarySearchGenerator(
         highlightIndices: highlights,
         range: null,
       },
-      `key = arr[${i}] = ${key}; after while: arr[${from}] = key; arr[0..${i}] non-decreasing`,
+      (from === i
+        ? [
+            `Sorting (phase 1), round ${i}: ${key} is already in order relative to the cells to its left.`,
+            '',
+            `It stays at index ${i}. Cells 0 … ${i} are sorted.`,
+          ]
+        : [
+            `Sorting (phase 1), round ${i}: insert ${key} from index ${i}.`,
+            '',
+            `Cells 0 … ${i - 1} are sorted. Copy each larger left neighbor one step right to open a gap, then write ${key} at index ${from} (placedAt).`,
+            '',
+            `Cells 0 … ${i} are now sorted.`,
+          ]
+      ).join('\n'),
       { start: 5, end: 9 },
       { variables: { i, key, placedAt: from } },
     );
