@@ -102,9 +102,9 @@ export function* bstInsertGenerator(
     'init',
     snap(null, [], null, null, 0),
     [
-      `Insert in order: [${input.join(', ')}].`,
+      `We insert the keys in this fixed order: [${input.join(', ')}].`,
       '',
-      `BST: left < node < right (strict); duplicates skipped.`,
+      `In this tree, every left subtree holds only values smaller than its node, and every right subtree holds only values larger. Equal keys are not inserted twice.`,
     ].join('\n'),
     { start: 1, end: 7 },
   );
@@ -115,7 +115,7 @@ export function* bstInsertGenerator(
       'start_insert',
       snap(null, [], val, null, inputIndex),
       [
-        `Next key val = ${val}. Start at root; follow left if val < node.value, right if val > node.value, stop without insert if val equals an existing key.`,
+        `Next we insert ${val}. We start at the root and compare: if the new value is smaller we go left, if it is larger we go right. If we ever see an equal key, we stop because duplicates are ignored.`,
       ].join('\n'),
       { start: 5, end: 8 },
       { variables: { inserting: val } },
@@ -129,7 +129,7 @@ export function* bstInsertGenerator(
         'place',
         snap(id, [], val, id, inputIndex),
         [
-          `Empty tree: the single node with key ${val} is a BST.`,
+          `The tree was empty, so this value becomes the root. A single node trivially satisfies the ordering rule.`,
         ].join('\n'),
         { start: 3, end: 3 },
         { variables: { inserting: val, placed: 'root' } },
@@ -147,7 +147,7 @@ export function* bstInsertGenerator(
         'compare',
         snap(curr, path, val, null, inputIndex),
         [
-          `At node ${node.value}; compare with val = ${val}.`,
+          `We are at the node with value ${node.value}. We compare it with ${val} to decide whether to go left, right, or stop.`,
         ].join('\n'),
         { start: 8, end: 8 },
         { variables: { inserting: val, current: node.value } },
@@ -162,7 +162,7 @@ export function* bstInsertGenerator(
             'place_left',
             snap(id, [...path, curr], val, id, inputIndex),
             [
-              `val < ${node.value}, no left child: attach leaf.`,
+              `${val} is smaller than ${node.value}, but there is no left child. We attach a new leaf on the left. Everything in that new subtree stays smaller than ${node.value}.`,
             ].join('\n'),
             { start: 9, end: 11 },
             { variables: { inserting: val, parent: node.value } },
@@ -173,7 +173,7 @@ export function* bstInsertGenerator(
           'go_left',
           snap(curr, path, val, null, inputIndex),
           [
-            `val < ${node.value}: continue to left child.`,
+            `${val} is smaller than ${node.value}, so we walk to the left child and repeat.`,
           ].join('\n'),
           { start: 13, end: 13 },
           { variables: { inserting: val, current: node.value } },
@@ -189,7 +189,7 @@ export function* bstInsertGenerator(
             'place_right',
             snap(id, [...path, curr], val, id, inputIndex),
             [
-              `val > ${node.value}, no right child: attach leaf.`,
+              `${val} is larger than ${node.value}, but there is no right child. We attach a new leaf on the right.`,
             ].join('\n'),
             { start: 15, end: 17 },
             { variables: { inserting: val, parent: node.value } },
@@ -200,7 +200,7 @@ export function* bstInsertGenerator(
           'go_right',
           snap(curr, path, val, null, inputIndex),
           [
-            `val > ${node.value}: continue to right child.`,
+            `${val} is larger than ${node.value}, so we walk to the right child and repeat.`,
           ].join('\n'),
           { start: 19, end: 19 },
           { variables: { inserting: val, current: node.value } },
@@ -217,7 +217,7 @@ export function* bstInsertGenerator(
     'build_complete',
     snap(null, [], null, null, input.length),
     [
-      `Tree built. Search uses the same comparisons as insert.`,
+      `All insertions are finished. The search phase uses the same rules: compare the target with the current node, go left if the target is smaller, go right if it is larger, stop if it matches.`,
     ].join('\n'),
     { start: 26, end: 28 },
   );
@@ -234,7 +234,7 @@ export function* bstInsertGenerator(
         searchMissNodeId: null,
       }),
       [
-        `Search for target = ${target}, starting at root.`,
+        `We now search for ${target}, beginning again at the root.`,
       ].join('\n'),
       { start: 26, end: 29 },
       { variables: { target } },
@@ -257,7 +257,7 @@ export function* bstInsertGenerator(
           searchMissNodeId: null,
         }),
         [
-          `Compare target ${target} with node key ${node.value}.`,
+          `Compare the target ${target} with this node’s value ${node.value}.`,
         ].join('\n'),
         { start: 29, end: 30 },
         { variables: { target, current: node.value } },
@@ -273,7 +273,7 @@ export function* bstInsertGenerator(
             searchMissNodeId: null,
           }),
           [
-            `Equality: target found at this node.`,
+            `They are equal, so we have found the target.`,
           ].join('\n'),
           { start: 30, end: 30 },
           { variables: { target, found: node.value } },
@@ -292,7 +292,7 @@ export function* bstInsertGenerator(
               searchMissNodeId: curr,
             }),
             [
-              `Need left subtree for target < ${node.value}, but left is null — not in tree.`,
+              `The target is smaller than ${node.value}, so any match would have to live in the left subtree. That child is missing, which means the target is not in the tree.`,
             ].join('\n'),
             { start: 32, end: 32 },
             { variables: { target, stoppedAt: node.value } },
@@ -308,7 +308,7 @@ export function* bstInsertGenerator(
             searchMissNodeId: null,
           }),
           [
-            `target < ${node.value}: go left.`,
+            `The target is smaller than ${node.value}, so we continue down the left link.`,
           ].join('\n'),
           { start: 32, end: 32 },
           { variables: { target, current: node.value } },
@@ -326,7 +326,7 @@ export function* bstInsertGenerator(
               searchMissNodeId: curr,
             }),
             [
-              `Need right subtree for target > ${node.value}, but right is null — not in tree.`,
+              `The target is larger than ${node.value}, so any match would have to live in the right subtree. That child is missing, so the target is not in the tree.`,
             ].join('\n'),
             { start: 34, end: 34 },
             { variables: { target, stoppedAt: node.value } },
@@ -342,7 +342,7 @@ export function* bstInsertGenerator(
             searchMissNodeId: null,
           }),
           [
-            `target > ${node.value}: go right.`,
+            `The target is larger than ${node.value}, so we continue down the right link.`,
           ].join('\n'),
           { start: 34, end: 34 },
           { variables: { target, current: node.value } },

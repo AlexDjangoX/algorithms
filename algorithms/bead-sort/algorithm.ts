@@ -82,9 +82,9 @@ export function* beadSortGenerator(
     'init',
     snap(grid, 'init'),
     [
-      `n = ${n}, M = max value = ${maxVal}. Grid is n × M with entries 0/1.`,
+      `There are ${n} numbers in the input. The largest value is ${maxVal}, so we draw a grid with ${n} rows and ${maxVal} columns. Each cell is either empty or holds one bead (shown as 1).`,
       '',
-      `Bead count Σ_i arr[i] equals the number of 1s in the grid at every step.`,
+      `The total number of beads equals the sum of the input values, and we never add or remove beads—only move them.`,
     ].join('\n'),
     { start: 1, end: 8 },
   );
@@ -97,7 +97,7 @@ export function* beadSortGenerator(
       'place',
       snap(grid, 'place', undefined, i),
       [
-        `For row i = ${i}, place arr[i] = ${arr[i]} beads: set grid[i][0] = … = grid[i][${arr[i]! - 1}] = 1 (if arr[i] = 0, nothing placed).`,
+        `Row ${i} stands for input value ${arr[i]}. We place that many beads in the leftmost cells of the row (if the value is zero, the row stays empty).`,
       ].join('\n'),
       { start: 11, end: 13 },
       { variables: { row: i, beads: arr[i] } },
@@ -116,7 +116,7 @@ export function* beadSortGenerator(
       'gravity',
       snap(grid, 'gravity', j),
       [
-        `Column j = ${j}: count = ${count} beads. Pack them to the bottom rows: grid[i][j] = 1 iff i ≥ n − count.`,
+        `Column ${j} is the next rod we let “fall.” There are ${count} beads in this column. Gravity stacks them at the bottom: the lowest ${count} rows get a bead in this column and the rest are empty.`,
       ].join('\n'),
       { start: 18, end: 21 },
       { variables: { rod: j, beads: count } },
@@ -128,7 +128,7 @@ export function* beadSortGenerator(
     'done',
     { ...snap(grid, 'done'), array: sorted },
     [
-      `Row sums match the input multiset; here they read non-decreasing left to right — the sorted order of the original values.`,
+      `Count beads in each row: that row sum is the output value for that position. The multiset of row sums equals the multiset of inputs, and the row sums read from top to bottom in order from smallest to largest.`,
       '',
       '✓',
     ].join('\n'),

@@ -27,7 +27,7 @@ export function* insertionSortGenerator(
     [
       `n = ${n}; arr is a copy of the input.`,
       '',
-      `For i = 1 … n−1: before each iteration, arr[0..i−1] is sorted (trivial for i = 1). Insert arr[i] into that prefix so arr[0..i] stays sorted.`,
+      `The loop runs for i = 1, 2, …, n − 1. At the start of each round, everything to the left of position i is already sorted from smallest to largest (when i is 1, that is only the first cell). This round pulls out the value at position i, slides any larger values one step to the right, and puts that value back where it belongs so the sorted region grows to include position i.`,
     ].join('\n'),
     { start: 1, end: 5 },
     { variables: { n } },
@@ -49,12 +49,12 @@ export function* insertionSortGenerator(
     const insertLines =
       from === i
         ? [
-            `i = ${i}, key = ${key}: no shifts (arr[i−1] ≤ key). Key stays at i; arr[0..i] sorted.`,
+            `On iteration i = ${i}, the value we pulled out (the key) is ${key}. Nothing moved because the cell to the left is already less than or equal to the key, so the key stays at index ${i}. From the start of the array through index ${i}, values are now in order.`,
           ]
         : [
-            `i = ${i}, key = ${key}: shift larger elements right until arr[j] ≤ key or j < 0.`,
+            `On iteration i = ${i}, the key is ${key}. Every value to the left that was still larger than the key was copied one step to the right, which frees the index where the key belongs.`,
             '',
-            `Place key at j+1 = ${from}; arr[0..i] is now sorted.`,
+            `We store the key at index ${from}. From the start of the array through index ${i}, values are now in order.`,
           ];
 
     yield createStep(
@@ -70,7 +70,7 @@ export function* insertionSortGenerator(
     'done',
     { inputSequence, array: [...arr] },
     [
-      `After i = n−1: full array is non-decreasing.`,
+      `The loop has processed every position. The whole array is now sorted from smallest to largest.`,
       '',
       '✓',
     ].join('\n'),

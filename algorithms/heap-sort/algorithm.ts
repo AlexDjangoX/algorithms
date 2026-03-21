@@ -31,11 +31,11 @@ export function* heapSortGenerator(
     'init',
     { inputSequence, array: [...arr] },
     [
-      `n = ${n}; arr is a copy of the input.`,
+      `The array has ${n} elements. We sort in place on a copy called arr.`,
       '',
-      `Max-heap on [0..heapSize−1]: parent i has children 2i+1, 2i+2; arr[i] ≥ children when in range (ties ok).`,
+      `We treat the array as a binary tree stored in row order: for index i, the left child is at 2i+1 and the right child is at 2i+2 when those indices exist. In a max-heap, every parent is greater than or equal to its children (equal values are allowed).`,
       '',
-      `Build heap, then repeatedly swap root with arr[end] and siftDown(0, end) for end = n−1 … 1.`,
+      `The algorithm has two phases. First we turn the whole array into a max-heap. Then we repeatedly move the largest element (always at index 0) to the end of the unsorted part and fix the heap on what remains.`,
     ].join('\n'),
     { start: 1, end: 4 },
   );
@@ -81,11 +81,11 @@ export function* heapSortGenerator(
           highlightIndices: highlights,
         },
         [
-          `siftDown(i = ${i}, heapSize = ${heapSize}); heap indices 0..${heapSize - 1}.`,
+          `We are fixing the heap starting at index ${i}. Only indices 0 through ${heapSize - 1} count as part of the heap right now.`,
           '',
-          `arr[${i}] = ${arr[i]!}; ${leftStr}; ${rightStr}.`,
+          `At this node, arr[${i}] is ${arr[i]!}. ${leftStr}. ${rightStr}.`,
           '',
-          `largest = argmax of parent and existing children (strict >). If largest = i, done.`,
+          `We compare the parent with its left and right children when they exist. The comparisons use strict greater-than, so if there is a tie the parent wins. If the parent already holds the largest of the three, we stop here.`,
         ].join('\n'),
         { start: 23, end: 27 },
         {
@@ -113,7 +113,7 @@ export function* heapSortGenerator(
           highlightIndices: [i, largest],
         },
         [
-          `Swap parent with largest child; continue siftDown from that child.`,
+          `A child holds a larger value than the parent, so we swap the parent down with that child. We then repeat the same check at the child position until the heap rule holds there.`,
         ].join('\n'),
         { start: 29, end: 30 },
         {
@@ -137,7 +137,7 @@ export function* heapSortGenerator(
       highlightIndices: [],
     },
     [
-      'Phase 1 — buildMaxHeap: siftDown(i, n) for i = ⌊n/2⌋−1 … 0.',
+      'Phase 1 is building the heap. We call sift-down on every node that has children, starting from the last parent and moving toward the root. By the end, the array satisfies the max-heap property.',
     ].join('\n'),
     { start: 13, end: 16 },
   );
@@ -151,7 +151,7 @@ export function* heapSortGenerator(
         highlightIndices: [i],
       },
       [
-        `siftDown(${i}, ${n}): fix subtree at ${i} (children already heaps).`,
+        `We sift down from index ${i} while the heap size is ${n}. The subtrees below ${i} are already valid heaps; this step restores the rule at ${i}.`,
       ].join('\n'),
       { start: 15, end: 16 },
       { variables: { i, n } },
@@ -167,7 +167,7 @@ export function* heapSortGenerator(
       highlightIndices: [0],
     },
     [
-      'Phase 2 — swap arr[0] with arr[end] (end = n−1 … 1); that value is final. Heap is [0..end−1]; siftDown(0, end).',
+      'Phase 2 is extracting the maximum repeatedly. The largest unsorted value always sits at index 0. We swap it with the last position of the current heap, which fixes that value in sorted order. Then we shrink the heap and sift down from the root.',
     ].join('\n'),
     { start: 5, end: 9 },
   );
@@ -181,10 +181,10 @@ export function* heapSortGenerator(
         array: [...arr],
         highlightIndices: [0, end],
       },
-        [
-        `Swap root with arr[${end}]; that value is the largest still in [0..${end}], so index ${end} is correct.`,
+      [
+        `We swap the root with the element at index ${end}. Everything still in the heap from 0 through ${end} was part of the heap before the swap, and the old root was the largest among them, so ${end} is now the correct position for that value in the final sorted array.`,
         '',
-        `siftDown(0, ${end}) on [0..${end - 1}].`,
+        `The heap now only uses indices 0 through ${end - 1}. We sift down from the root to restore the max-heap on that smaller range.`,
       ].join('\n'),
       { start: 7, end: 7 },
       { variables: { i: 0, j: end, 'arr[i]': arr[0]!, 'arr[j]': arr[end]! } },
@@ -197,7 +197,7 @@ export function* heapSortGenerator(
     'done',
     { inputSequence, array: [...arr] },
     [
-      'After n−1 extractions, arr[0] is the smallest remaining element; the array is sorted in non-decreasing order.',
+      'After the last extraction, only one value is left at index 0. The array is now sorted from smallest to largest.',
       '',
       '✓',
     ].join('\n'),

@@ -68,9 +68,9 @@ export function* librarySortGenerator(
     'init_input',
     { array: [...S], input: [...input] },
     [
-      `n = ${n}, ε = ${epsilon}, sLen = ⌈(1 + ε)n⌉ = ${sLen}. S[0..sLen−1] starts as nulls (gaps). Input: [${input.join(', ')}].`,
+      `There are ${n} numbers to sort. This variant keeps them in a longer array S with room for gaps. Here ε is ${epsilon}, so the buffer length is sLen = ${sLen}. Every cell in S starts empty (shown as a gap). The input order is [${input.join(', ')}].`,
       '',
-      `Each value is placed via binary search on a prefix of length len, with right-shifts if needed; rounds end with a rebalance that spreads gaps. Narrative matches this code only.`,
+      `For each number we binary-search where it belongs inside a growing active prefix, slide values aside if that slot is full, and occasionally rebalance to spread gaps again. The steps you see follow this file exactly.`,
     ].join('\n'),
     { start: 1, end: 7 },
   );
@@ -86,7 +86,7 @@ export function* librarySortGenerator(
       'round_start',
       { array: S.map((x) => x), input: [...input] },
       [
-        `Round ${round}: up to goal = ${goal} inserts while pos < n. len = min(sLen, (round === 1 ? 1 : 2^(round−1))·2) = ${Math.min(sLen, (round === 1 ? 1 : Math.pow(2, round - 1)) * 2)}.`,
+        `Round ${round}. We will insert up to ${goal} values in this round as long as values remain. The active prefix length len for searches is ${Math.min(sLen, (round === 1 ? 1 : Math.pow(2, round - 1)) * 2)} (capped by the buffer size).`,
       ].join('\n'),
       { start: 13, end: 15 },
       { variables: { round, goal, pos } },
@@ -103,7 +103,7 @@ export function* librarySortGenerator(
         'pick_value',
         { array: S.map((x) => x), input: [...input], insertingValue: val },
         [
-          `Next key: val = input[${pos}] = ${val}. Search and insert use only indices [0..len−1] of S with len as computed above.`,
+          `The next value to insert is input[${pos}] = ${val}. All searches and shifts stay inside the first len cells of S for this round.`,
         ].join('\n'),
         { start: 17, end: 18 },
         { variables: { val, pos, round } },
@@ -120,7 +120,7 @@ export function* librarySortGenerator(
           insertingValue: val,
         },
         [
-          `insPos = ${insPos} from findInsertPosition: binary search on non-null keys, skip forward through gaps, then walk right for a free slot (or backtrack left if full).`,
+          `findInsertPosition chose index ${insPos}. Roughly speaking, binary search finds the right rank among nonempty cells, then the code skips forward across occupied cells to land on a gap. If the row is packed, it walks back left until it finds room.`,
         ].join('\n'),
         { start: 20, end: 20 },
         { variables: { val, insPos, pos }, highlights: [insPos] },
@@ -140,7 +140,7 @@ export function* librarySortGenerator(
               insertingValue: val,
             },
             [
-              `S[insPos] was occupied; exchange S[${j - 1}] and S[${j}] (j increases from insPos) until some index holds null.`,
+              `The target cell was not empty, so we bubble the blocking value to the right by swapping neighbors. Each swap moves the gap one step until we free the slot we need.`,
             ].join('\n'),
             { start: 24, end: 25 },
             { variables: { val, insPos, j }, highlights: [j, j - 1] },
@@ -160,7 +160,7 @@ export function* librarySortGenerator(
           insertingValue: val,
         },
         [
-          `Assign S[${insPos}] ← ${val}; increment pos.`,
+          `We store ${val} at index ${insPos} and move on to the next input index.`,
         ].join('\n'),
         { start: 30, end: 31 },
         { variables: { val, insPos, pos }, highlights: [insPos] },
@@ -178,7 +178,7 @@ export function* librarySortGenerator(
       'rebalance_start',
       { array: S.map((x) => x), input: [...input] },
       [
-        `Rebalance: prevLen = ${prevLen}, newLen = ${newLen}, step = ⌊newLen/prevLen⌋ = ${Math.floor(newLen / prevLen)}; w starts at newLen−1. For j = prevLen−1 … 0: move S[j] → S[w], clear S[w−1] if needed, w -= step.`,
+        `Rebalancing spreads the occupied cells across a wider prefix. The previous active length was ${prevLen}; we redistribute into length ${newLen} using step size ${Math.floor(newLen / prevLen)}. A write pointer w starts at the far end of the new range. For each old index from right to left we copy the value forward into S[w] and leave a gap behind, then step w backward.`,
       ].join('\n'),
       { start: 34, end: 41 },
       { variables: { prevLen, newLen, goal } },
@@ -193,7 +193,7 @@ export function* librarySortGenerator(
         'rebalance',
         { array: S.map((x) => x), input: [...input] },
         [
-          `Inner rebalance iteration j = ${prevLen - 1 - stepNum + 1}: one step of the loop above (see variables).`,
+          `One step of the rebalance loop: copy from the old side toward the new positions and clear the gap that opens up. The variables panel shows the current indices.`,
         ].join('\n'),
         { start: 42, end: 45 },
         { variables: { prevLen, newLen, j, stepNum } },
@@ -211,7 +211,7 @@ export function* librarySortGenerator(
     'done',
     { array: S.map((x) => x), input: [...input] },
     [
-      'Termination: pos = n. Output is the subsequence of S in index order omitting null (filter in code).',
+      'All inputs are placed. Reading S from left to right and skipping empty cells gives the sorted output.',
       '',
       '✓',
     ].join('\n'),

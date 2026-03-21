@@ -57,9 +57,9 @@ export function* binarySearchGenerator(
       range: null,
     },
     [
-      `Phase 1 — insertion sort (${n} elements) until arr is non-decreasing.`,
+      `First we sort the array with insertion sort so that binary search is allowed. There are ${n} values.`,
       '',
-      `Phase 2 target (present in this demo): ${target}.`,
+      `After the sort we will look for ${target}. In this demo that value is guaranteed to appear once the array is sorted.`,
     ].join('\n'),
     { start: 1, end: 3 },
     { variables: { n, target } },
@@ -90,10 +90,10 @@ export function* binarySearchGenerator(
       },
       (from === i
         ? [
-            `Insert i = ${i}: key = ${key} already in place; arr[0..i] sorted.`,
+            `Insertion-sort step ${i}: the key ${key} is already larger than everything to its left, so nothing shifts. The first ${i + 1} positions are sorted.`,
           ]
         : [
-            `Insert i = ${i}: key = ${key} placed at ${from}; arr[0..i] sorted.`,
+            `Insertion-sort step ${i}: we slid larger values to the right and inserted the key ${key} at index ${from}. The first ${i + 1} positions are sorted.`,
           ]
       ).join('\n'),
       { start: 6, end: 10 },
@@ -112,9 +112,9 @@ export function* binarySearchGenerator(
       range: null,
     },
     [
-      `Array is sorted; binary search applies.`,
+      `The array is now in order from smallest to largest, so we can binary search.`,
       '',
-      `Search for target = ${target}.`,
+      `We will search for ${target}.`,
     ].join('\n'),
     { start: 12, end: 12 },
     { variables: { target, n } },
@@ -131,7 +131,7 @@ export function* binarySearchGenerator(
       range: { lo: 0, hi: n - 1 },
     },
     [
-      `lo = 0, hi = ${n - 1}. If target exists, it lies in arr[lo..hi].`,
+      `We keep a window of possible indices. lo starts at 0 and hi starts at ${n - 1}. If the target appears in the array, it must lie between lo and hi inclusive.`,
     ].join('\n'),
     { start: 14, end: 19 },
     { variables: { target, lo: 0, hi: n - 1 } },
@@ -155,7 +155,7 @@ export function* binarySearchGenerator(
         range: { lo, hi, mid },
       },
       [
-        `mid = ⌊(lo + hi)/2⌋ = ${mid}; arr[mid] = ${midVal}.`,
+        `The middle index is ${mid} (halfway between lo and hi, rounded down). The value there is ${midVal}.`,
       ].join('\n'),
       { start: 19, end: 21 },
       { variables: { lo, hi, mid, midVal, target } },
@@ -173,7 +173,7 @@ export function* binarySearchGenerator(
           range: { lo: mid, hi: mid, mid },
         },
         [
-          `Found: return index ${mid}.`,
+          `That matches the target, so we stop and return index ${mid}.`,
         ].join('\n'),
         { start: 21, end: 21 },
         { variables: { result: mid, target } },
@@ -194,7 +194,7 @@ export function* binarySearchGenerator(
           range: { lo, hi },
         },
         [
-          `arr[mid] < target → target is right of mid. lo ← ${lo}.`,
+          `The middle value is smaller than the target, so the target can only be to the right. We move lo forward to ${lo} and search the upper half.`,
         ].join('\n'),
         { start: 22, end: 22 },
         { variables: { lo, hi, midVal, target } },
@@ -212,7 +212,7 @@ export function* binarySearchGenerator(
           range: { lo, hi },
         },
         [
-          `arr[mid] > target → target is left of mid. hi ← ${hi}.`,
+          `The middle value is larger than the target, so the target can only be to the left. We move hi backward to ${hi} and search the lower half.`,
         ].join('\n'),
         { start: 23, end: 23 },
         { variables: { lo, hi, midVal, target } },
@@ -231,7 +231,7 @@ export function* binarySearchGenerator(
       range: null,
     },
     [
-      `lo > hi: target not in arr. Return −1.`,
+      `The window is empty (lo grew past hi), so the target is not in the array. The convention here is to return −1.`,
     ].join('\n'),
     { start: 25, end: 25 },
     { variables: { result: -1, target } },

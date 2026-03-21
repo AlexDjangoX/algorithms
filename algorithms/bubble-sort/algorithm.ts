@@ -27,11 +27,11 @@ export function* bubbleSortGenerator(
     'init',
     { inputSequence, array: [...arr] },
     [
-      `n = ${n}; arr is a copy of the input.`,
+      `The array has ${n} elements. We work on a copy called arr.`,
       '',
-      `Inner j = 0 … n−2−i: swap adjacent pairs if arr[j] > arr[j+1]. After pass i, arr[n−1−i] is a maximum of the unsorted prefix.`,
+      `Bubble sort repeats passes over the array. In each pass we walk from the left, comparing neighbors. If the left value is greater than the right value, we swap them. After enough passes, the largest values “bubble” toward the end.`,
       '',
-      `After n−1 passes, the array is non-decreasing.`,
+      `When the outer loop finishes, every pair of neighbors is in order, so the whole array is sorted from smallest to largest (ties keep their relative order because we only swap on a strict greater-than).`,
     ].join('\n'),
     { start: 1, end: 5 },
   );
@@ -41,9 +41,9 @@ export function* bubbleSortGenerator(
       'outer',
       { inputSequence, array: [...arr] },
       [
-        `Pass i = ${i}: bubble in [0..${n - 2 - i}] vs next neighbor; suffix [${n - i}..${n - 1}] already settled.`,
+        `This is outer pass number ${i} (counting from 0). We only compare neighbors in the range from index 0 up to index ${n - 2 - i}. The cells from index ${n - i} through ${n - 1} at the right are already in their final positions, so we leave them alone.`,
         '',
-        `After this pass, arr[n−1−i] is a max of the prefix.`,
+        `By the end of this pass, the largest value that still belonged in the unsorted part will have moved into position ${n - 1 - i}.`,
       ].join('\n'),
       { start: 5, end: 5 },
       { variables: { i, n: n - 1 - i } },
@@ -54,9 +54,9 @@ export function* bubbleSortGenerator(
         'compare',
         { inputSequence, array: [...arr], highlightIndices: [j, j + 1] },
         [
-          `Compare arr[${j}] and arr[${j + 1}] (swap if arr[${j}] > arr[${j + 1}]).`,
+          `Look at the two neighbors at positions ${j} and ${j + 1}. Right now they hold ${arr[j]} and ${arr[j + 1]}.`,
           '',
-          `Values: ${arr[j]}, ${arr[j + 1]}.`,
+          `If the left one is strictly greater than the right one, the code will swap them in the next step. If not, no swap happens.`,
         ].join('\n'),
         { start: 8, end: 8 },
         { variables: { i, j, 'arr[j]': arr[j], 'arr[j+1]': arr[j + 1] } },
@@ -74,9 +74,9 @@ export function* bubbleSortGenerator(
             highlightIndices: [j, j + 1],
           },
           [
-            `Swap: now ${arr[j]}, ${arr[j + 1]} (were ${before0}, ${before1}).`,
+            `We swap the two cells. After the swap, position ${j} holds ${arr[j]} and position ${j + 1} holds ${arr[j + 1]} (before the swap they were ${before0} and ${before1}).`,
             '',
-            `Equal keys never swap (strict >) — stable.`,
+            `When two values are equal, this algorithm never swaps them, so equal elements keep their original left-to-right order.`,
           ].join('\n'),
           { start: 9, end: 9 },
           {
@@ -96,7 +96,7 @@ export function* bubbleSortGenerator(
     'done',
     { inputSequence, array: [...arr] },
     [
-      `Done: arr[0] ≤ … ≤ arr[n−1].`,
+      `The sort is finished. Reading the array from left to right, each value is less than or equal to the next.`,
       '',
       '✓',
     ].join('\n'),

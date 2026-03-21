@@ -30,9 +30,9 @@ export function* quickSortGenerator(
     'init',
     { inputSequence, array: [...arr] },
     [
-      `n = ${n}; arr is a copy of the input.`,
+      `The array has ${n} elements. We work on a copy called arr.`,
       '',
-      `Lomuto: pivot = arr[hi]. After partition, arr[lo..p−1] ≤ arr[p] ≤ arr[p+1..hi]; pivot stays fixed for this subproblem.`,
+      `This is quicksort with Lomuto partitioning. We pick the last element of the current range as the pivot. After one partition pass, every value to the left of the pivot is less than or equal to it, and every value to the right is greater than or equal to it. The pivot itself ends up where it belongs for the final sorted order.`,
     ].join('\n'),
     { start: 1, end: 2 },
   );
@@ -50,9 +50,9 @@ export function* quickSortGenerator(
         highlightIndices: [hi],
       },
       [
-        `Partition [${lo}..${hi}]; pivot = arr[${hi}] = ${pivotVal}.`,
+        `We partition the range from index ${lo} through ${hi}. The pivot is the value at the right end, arr[${hi}] = ${pivotVal}.`,
         '',
-        `[lo..i−1] ≤ pivot; [i..j−1] > pivot (for j moving lo..hi−1).`,
+        `As j walks from ${lo} up to ${hi} - 1, we keep a boundary index i. Everything from ${lo} up to i - 1 is less than or equal to the pivot. Everything from i up to j - 1 is greater than the pivot.`,
       ].join('\n'),
       { start: 17, end: 19 },
       { variables: { lo, hi, pivot: pivotVal } },
@@ -68,7 +68,7 @@ export function* quickSortGenerator(
           highlightIndices: [j, hi],
         },
         [
-          `If arr[${j}] ≤ ${pivotVal}, swap into the ≤ region and grow i.`,
+          `If arr[${j}] is less than or equal to the pivot (${pivotVal}), we extend the “small side” by swapping that element into place and moving the boundary i forward.`,
         ].join('\n'),
         { start: 22, end: 22 },
         {
@@ -92,7 +92,7 @@ export function* quickSortGenerator(
               highlightIndices: [i, j],
             },
             [
-              `Swap arr[${i}] and arr[${j}] to extend the ≤ region; then i increases.`,
+              `We swap positions ${i} and ${j} so the smaller value joins the left group, then we advance i.`,
             ].join('\n'),
             { start: 23, end: 24 },
             { variables: { i, j, 'arr[i]': arr[i]!, 'arr[j]': arr[j]! } },
@@ -112,7 +112,7 @@ export function* quickSortGenerator(
           highlightIndices: [i, hi],
         },
         [
-          `Swap pivot into place: arr[${i}] = pivot; left ≤ pivot, right ≥ pivot.`,
+          `We swap the pivot into its final spot at index ${i}. Everything to the left is at most the pivot; everything to the right is at least the pivot.`,
         ].join('\n'),
         { start: 27, end: 27 },
         { variables: { i, hi, pivotIndex: i } },
@@ -127,7 +127,7 @@ export function* quickSortGenerator(
         highlightIndices: [i],
       },
       [
-        `p = ${i}: pivot is final for [${lo}..${hi}]; recurse left and right only.`,
+        `The partition returns index ${i}. The pivot does not need to move again while we sort only the left part (${lo} through ${i - 1}) and the right part (${i + 1} through ${hi}) separately.`,
       ].join('\n'),
       { start: 28, end: 28 },
       { variables: { p: i, lo, hi } },
@@ -148,7 +148,7 @@ export function* quickSortGenerator(
         highlightIndices: lo <= hi ? [lo, hi] : [],
       },
       [
-        `Recursive call on subarray indices [${lo}..${hi}].`,
+        `We are about to sort the subarray from index ${lo} through ${hi}.`,
       ].join('\n'),
       { start: 5, end: 6 },
       { variables: { lo, hi } },
@@ -163,7 +163,7 @@ export function* quickSortGenerator(
           highlightIndices: lo === hi ? [lo] : [],
         },
         [
-          `If lo ≥ hi, the subarray has at most one element; it is already sorted.`,
+          `If the left index has passed the right index, there is nothing to do. If they are equal, a single element is already sorted.`,
         ].join('\n'),
         { start: 7, end: 8 },
         { variables: { lo, hi } },
@@ -181,7 +181,7 @@ export function* quickSortGenerator(
         highlightIndices: [p],
       },
       [
-        `Recursively sort arr[${lo}..${p - 1}] and arr[${p + 1}..${hi}]. By the partition result, every key in arr[${lo}..${p - 1}] is ≤ arr[${p}], and every key in arr[${p + 1}..${hi}] is ≥ arr[${p}].`,
+        `Next we sort the left segment from ${lo} to ${p - 1} and the right segment from ${p + 1} to ${hi}. After partitioning, every value in the left segment is less than or equal to the pivot at ${p}, and every value in the right segment is greater than or equal to the pivot.`,
       ].join('\n'),
       { start: 12, end: 13 },
       { variables: { p, lo, hi } },
@@ -199,7 +199,7 @@ export function* quickSortGenerator(
     'done',
     { inputSequence, array: [...arr] },
     [
-      `Done: arr is non-decreasing — [${arr.join(', ')}].`,
+      `Sorting is complete. The array reads from smallest to largest: [${arr.join(', ')}].`,
     ].join('\n'),
     { start: 1, end: 5 },
   );
