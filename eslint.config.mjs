@@ -13,6 +13,28 @@ const eslintConfig = defineConfig([
     "build/**",
     "next-env.d.ts",
   ]),
+  {
+    files: ["**/*.{ts,tsx}"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: ["../**"],
+              message:
+                "Use @/ path aliases instead of parent-relative imports (e.g. @/components/...).",
+            },
+            {
+              group: ["./*", "./**"],
+              message:
+                "Use @/ path aliases instead of same-folder imports (e.g. @/components/...).",
+            },
+          ],
+        },
+      ],
+    },
+  },
 ]);
 
 export default eslintConfig;
